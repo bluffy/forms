@@ -1,6 +1,8 @@
 module github.com/bluffy/forms
 
-go 1.21.4
+go 1.22
+
+toolchain go1.22.1
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -16,6 +18,8 @@ require (
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/gopkgsquad/gloader v1.0.2 // indirect
+	github.com/gopkgsquad/glogger v1.0.3 // indirect
 	github.com/jessevdk/go-flags v1.5.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect

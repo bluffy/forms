@@ -30,6 +30,10 @@ github.com/go-sql-driver/mysql v1.8.1 h1:LedoTUt/eveggdHS9qUFC1EFSa8bU2+1pZjSRpv
 github.com/go-sql-driver/mysql v1.8.1/go.mod h1:wEBSXgmK//2ZFJyE+qWnIsVGmvmEKlqwuVSjsCm7DZg=
 github.com/golang-jwt/jwt v3.2.2+incompatible h1:IfV12K8xAKAnZqdXVzCZ+TOjboZ2keLg81eXfW3O+oY=
 github.com/golang-jwt/jwt v3.2.2+incompatible/go.mod h1:8pz2t5EyA70fFQQSrl6XZXzqecmYZeUEB8OUGHkxJ+I=
+github.com/gopkgsquad/gloader v1.0.2 h1:clFIH9WXcLPuAL0ey8dFtKgzI+bWLpIxTDGRS3dZNcI=
+github.com/gopkgsquad/gloader v1.0.2/go.mod h1:O9FsCwqp0pl3SM/Ge03bGsjGZrC60kmh5BGwZvh8Gzc=
+github.com/gopkgsquad/glogger v1.0.3 h1:ROaK0JMlYXBPegIVKdaHbImJGm9PV30V3sEZcIfVjo8=
+github.com/gopkgsquad/glogger v1.0.3/go.mod h1:m3kKj3HP1yEX9k7nmA9ewGD9nSwWfVTw8ZyoUOdWeDo=
 github.com/jessevdk/go-flags v1.5.0 h1:1jKYvbxEjfUl0fmqTCOfonvskHHXMjBySTLW4y9LFvc=
 github.com/jessevdk/go-flags v1.5.0/go.mod h1:Fw0T6WPc1dYxT4mKEZRfG5kJhaTDP9pj1c2EWnYs/m4=
 github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=

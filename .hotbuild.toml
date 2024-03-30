@@ -1,0 +1,4 @@
+buildcmd = "go build -o tmp/tmp_bin"
+excludedir = [".git", "tmp", "docs", "vendor","webapp"]
+projectdir = "/home/mario/projects/github.com/bluffy/forms"
+runcmd = "tmp/tmp_bin"

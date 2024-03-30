@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gopkgsquad/gloader"
 	"github.com/jessevdk/go-flags"
 	"github.com/segmentio/ksuid"
 
@@ -23,6 +24,7 @@ import (
 	goose_v3 "github.com/pressly/goose/v3"
 	log "github.com/sirupsen/logrus"
 
+	logger "github.com/gopkgsquad/glogger"
 	"gorm.io/gorm"
 )
 
@@ -179,6 +181,19 @@ func Server(appConf *config.Config, opts ArgOptions, args []string) {
 	go srv.ListenAndServe()
 	log.Infof("Starting INTERN Server %v", addressApi)
 	go srvIntern.ListenAndServe()
+
+	if appConf.Debug == true {
+		routerLiveReload := http.NewServeMux()
+		logger := logger.NewLogger(os.Stdout, logger.LogLevelInfo, true)
+		// initialize http.Server
+		srvLiveReload := &http.Server{
+			Addr:    ":35729",
+			Handler: routerLiveReload,
+		}
+
+		// start the application with live reload
+		gloader.NewWatcher(srvLiveReload, time.Second*2, logger).Start()
+	}
 
 	// create a channel to subscribe ctrl+c/SIGINT event
 	sigInterruptChannel := make(chan os.Signal, 1)

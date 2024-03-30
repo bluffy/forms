@@ -2,7 +2,7 @@
 
 ## install
 
-    go install github.com/codegangsta/gin@latest
+    go install github.com/wandercn/hotbuild@latest
 
 ## DEV
 
