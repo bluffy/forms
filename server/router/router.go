@@ -125,12 +125,17 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.ContentTypeJson)
 
+			r.Get("/test", a.HandlerIndex)
+
+			r.Post("/login", a.HandlerLogin)
+
 			//r.Post("/oidc/callback/{name}", a.HandlerOpenIDCallback)
 			/*
+						r.Get("/login", a.HandlerLoginData)
+
 				r.Get("/forgot_password", a.HandlePasswordRequest)
 				r.Post("/login/refresh", a.RefreshLoginToken)
-				r.Get("/login", a.HandlerLoginData)
-				r.Post("/login", a.HandlerLogin)
+
 				r.Post("/user", a.HandlerLogin)
 				r.Post("/new_password", a.HandlerNewPassword)
 			*/
@@ -157,6 +162,8 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 
 		})
 	})
+
+	r.Get("/", a.HandlerIndex)
 
 	/*
 		if a.Conf().UseEmbedClient {

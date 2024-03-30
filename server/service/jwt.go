@@ -18,11 +18,11 @@ type Jwt struct {
 }
 
 type JWTClaim struct {
-	Data models.DatabaseUser
+	Data models.UserDto
 	jwt.StandardClaims
 }
 
-func (j Jwt) CreateToken(user models.DatabaseUser) (models.Token, error) {
+func (j Jwt) CreateToken(user models.UserDto) (models.Token, error) {
 	var err error
 
 	claims := &JWTClaim{
@@ -43,7 +43,7 @@ func (j Jwt) CreateToken(user models.DatabaseUser) (models.Token, error) {
 	return j.createRefreshToken(jwt)
 }
 
-func (j Jwt) ValidateToken(accessToken string) (models.DatabaseUser, error) {
+func (j Jwt) ValidateToken(accessToken string) (models.UserDto, error) {
 
 	token, err := jwt.ParseWithClaims(
 		accessToken,
@@ -57,7 +57,7 @@ func (j Jwt) ValidateToken(accessToken string) (models.DatabaseUser, error) {
 			return []byte(j.TokenKey), nil
 		},
 	)
-	user := models.DatabaseUser{}
+	user := models.UserDto{}
 
 	if err != nil {
 		return user, err
@@ -72,9 +72,9 @@ func (j Jwt) ValidateToken(accessToken string) (models.DatabaseUser, error) {
 	return user, errors.New("invalid token")
 }
 
-func (j Jwt) ValidateRefreshToken(modelToken models.Token) (models.DatabaseUser, error) {
+func (j Jwt) ValidateRefreshToken(modelToken models.Token) (models.UserDto, error) {
 
-	user := models.DatabaseUser{}
+	user := models.UserDto{}
 
 	refreshToken, err := jwt.Parse(modelToken.RefreshToken, func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)

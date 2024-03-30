@@ -24,8 +24,11 @@ import (
 	goose_v3 "github.com/pressly/goose/v3"
 	log "github.com/sirupsen/logrus"
 
+	_ "github.com/bluffy/forms/docs" // swagger
 	logger "github.com/gopkgsquad/glogger"
 	"gorm.io/gorm"
+
+	vr "github.com/bluffy/forms/util/validator"
 )
 
 /*
@@ -122,7 +125,7 @@ func Server(appConf *config.Config, opts ArgOptions, args []string) {
 
 	log.Info("Set Language: " + appConf.Language)
 
-	appLang := lang.AppLang(appConf.Language, dataFS)
+	appLang := lang.AppLang(appConf.Language, appConf.LogLanguage, dataFS)
 
 	// check DB Connection on Start 100 times
 	log.Info("Connect Database: " + appConf.Database.Type)
@@ -153,10 +156,12 @@ func Server(appConf *config.Config, opts ArgOptions, args []string) {
 			return
 		}*/
 
+	validator := vr.New()
+
 	addressApp := fmt.Sprintf(":%d", appConf.Server.Port)
 	addressApi := fmt.Sprintf(":%d", appConf.Server.PortIntern)
 
-	application := app.New(appConf, appLang, db)
+	application := app.New(appConf, validator, appLang, db)
 
 	appRouter := router.NewApp(application, publicFS)
 	internRouter := router.NewIntern(application, publicFS)

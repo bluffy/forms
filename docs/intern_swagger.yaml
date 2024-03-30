@@ -1,0 +1,19 @@
+basePath: /
+info:
+  contact:
+    email: mario@bluffy.de
+    name: API Support
+  description: app server
+  title: bluffy-forms app server
+  version: "1.0"
+paths: {}
+schemes:
+- http
+- https
+securityDefinitions:
+  Token:
+    description: Type "Token" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

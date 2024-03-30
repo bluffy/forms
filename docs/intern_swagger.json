@@ -1,0 +1,26 @@
+{
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "app server",
+        "title": "bluffy-forms app server",
+        "contact": {
+            "name": "API Support",
+            "email": "mario@bluffy.de"
+        },
+        "version": "1.0"
+    },
+    "basePath": "/",
+    "paths": {},
+    "securityDefinitions": {
+        "Token": {
+            "description": "Type \"Token\" followed by a space and JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

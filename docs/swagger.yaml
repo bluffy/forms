@@ -1,0 +1,89 @@
+basePath: /
+definitions:
+  models.AppError:
+    properties:
+      error:
+        properties:
+          code:
+            type: integer
+          fields:
+            additionalProperties:
+              type: string
+            type: object
+          message:
+            type: string
+        type: object
+    type: object
+  models.Token:
+    properties:
+      at:
+        type: string
+      rt:
+        type: string
+    type: object
+  models.UserLoginForm:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+info:
+  contact:
+    email: mario@bluffy.de
+    name: API Support
+  description: app server
+  title: bluffy-forms app server
+  version: "1.0"
+paths:
+  /api/v1/:
+    get:
+      consumes:
+      - application/json
+      description: get data
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - Token: []
+      tags:
+      - public
+  /api/v1/login:
+    post:
+      consumes:
+      - application/json
+      description: login
+      parameters:
+      - description: Email & Password
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserLoginForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Token'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.AppError'
+      tags:
+      - public
+schemes:
+- http
+- https
+securityDefinitions:
+  Token:
+    description: Type "Token" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -13,6 +13,20 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// @title bluffy-forms app intern server
+// @version 1.0
+// @description
+
+// @contact.name API Support
+// @contact.email mario@bluffy.de
+
+// @schemes  http https
+// @BasePath /
+
+// @securityDefinitions.apikey Token
+// @in header
+// @name Authorization
+// @description Type "Token" followed by a space and JWT token.
 func NewIntern(a *app.App, publicFS fs.FS) *chi.Mux {
 	isReady := &atomic.Value{}
 	isReady.Store(false)

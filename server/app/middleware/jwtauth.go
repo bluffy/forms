@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/bluffy/forms/models"
 	"github.com/bluffy/forms/server/app"
 	"github.com/bluffy/forms/server/service"
 	log "github.com/sirupsen/logrus"
@@ -16,13 +15,15 @@ func JWTAuth(a *app.App) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 
-			if r.URL.Query().Get("sess") != "" {
-				user := models.DatabaseUser{}
-				user.Token = r.URL.Query().Get("sess")
-				a.SetUser(user)
-				next.ServeHTTP(w, r)
-				return
-			}
+			/*
+				if r.URL.Query().Get("sess") != "" {
+					user := models.User{}
+					//user.Token = r.URL.Query().Get("sess")
+					a.SetUser(user)
+					next.ServeHTTP(w, r)
+					return
+				}
+			*/
 
 			bearerToken := r.Header.Get("Authorization")
 			token := strings.Split(bearerToken, " ")
