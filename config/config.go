@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"time"
 
 	"github.com/creasty/defaults"
 	"gopkg.in/yaml.v2"
@@ -10,6 +11,22 @@ import (
 type Config struct {
 	Dev      bool
 	Debug    bool
+	Language string `default:"en"`
+
+	Server struct {
+		Port                 int           `yaml:"port" default:"4090"`
+		PortIntern           int           `yaml:"port_intern" default:"4091"`
+		Host                 string        `default:"127.0.0.1"`
+		PublicUrl            string        `yaml:"public_url"`
+		TimeoutRead          time.Duration `yaml:"timeout_read" default:"default=30s"`
+		TimeoutWrite         time.Duration `yaml:"timeout_write" default:"default=30s"`
+		TimeoutIdle          time.Duration `yaml:"timeout_idle" default:"default=45s"`
+		TokenKey             string        `yaml:"token_key"`
+		TokenLifeTime        int           `yaml:"token_life_time" default:"43200"`
+		TokenRefreshLifeTime int           `yaml:"token_refreshLifeTime" default:"43200"`
+		TokenRefreshAllowed  bool          `yaml:"token_refreshAllowed" default:"true"`
+	}
+
 	Database struct {
 		Type     string
 		Username string

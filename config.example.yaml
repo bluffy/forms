@@ -1,1 +1,8 @@
 debug: true
+database:
+  type: mysql
+  host: localhost
+  port: 3306
+  username: bluffyforms
+  password: bluffyforms
+  database: bluffyforms

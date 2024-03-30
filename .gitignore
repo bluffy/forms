@@ -21,3 +21,4 @@
 go.work
 config.yaml
 /server/app/version/
+gin-bin

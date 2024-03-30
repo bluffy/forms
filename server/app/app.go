@@ -1,11 +1,12 @@
 package app
 
 import (
-	"database/sql"
 	"embed"
 
 	"github.com/bluffy/forms/config"
 	"github.com/bluffy/forms/models"
+	"github.com/bluffy/forms/server/lang"
+	"gorm.io/gorm"
 )
 
 //go:embed version/*
@@ -14,7 +15,8 @@ var version = "0.0.0"
 
 type App struct {
 	conf *config.Config
-	db   *sql.DB
+	lang *lang.Lang
+	db   *gorm.DB
 	//userRestConf *clientcredentials.Config
 	//	openIds map[string]*oauth2.Config
 	//userClient *http.Client
@@ -24,13 +26,13 @@ type App struct {
 
 func New(
 	conf *config.Config,
-	db *sql.DB,
-
+	lang *lang.Lang,
+	db *gorm.DB,
 ) *App {
 
 	return &App{
 		conf: conf,
-
+		lang: lang,
 		//openIds: openIds,
 		db: db,
 	}
