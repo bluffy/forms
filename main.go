@@ -113,7 +113,7 @@ func main() {
 // @schemes  http https
 // @BasePath /
 
-// @securityDefinitions.apikey Token
+// @securityDefinitions.apikey BEARER
 // @in header
 // @name Authorization
 // @description Type "Token" followed by a space and JWT token.

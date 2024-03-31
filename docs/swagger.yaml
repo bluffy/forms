@@ -48,6 +48,22 @@ paths:
       - Token: []
       tags:
       - public
+  /api/v1/intern:
+    get:
+      consumes:
+      - application/json
+      description: get data
+      produces:
+      - application/json
+      responses:
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.AppError'
+      security:
+      - Token: []
+      tags:
+      - public
   /api/v1/login:
     post:
       consumes:
@@ -81,7 +97,7 @@ schemes:
 - http
 - https
 securityDefinitions:
-  Token:
+  BEARER:
     description: Type "Token" followed by a space and JWT token.
     in: header
     name: Authorization

@@ -38,6 +38,33 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/api/v1/intern": {
+            "get": {
+                "security": [
+                    {
+                        "Token": []
+                    }
+                ],
+                "description": "get data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "public"
+                ],
+                "responses": {
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.AppError"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/login": {
             "post": {
                 "description": "login",
@@ -131,7 +158,7 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "Token": {
+        "BEARER": {
             "description": "Type \"Token\" followed by a space and JWT token.",
             "type": "apiKey",
             "name": "Authorization",

@@ -19,7 +19,7 @@ const docTemplateintern = `{
     "basePath": "{{.BasePath}}",
     "paths": {},
     "securityDefinitions": {
-        "Token": {
+        "BEARER": {
             "description": "Type \"Token\" followed by a space and JWT token.",
             "type": "apiKey",
             "name": "Authorization",
