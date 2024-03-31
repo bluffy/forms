@@ -10,22 +10,20 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gopkgsquad/gloader"
 	"github.com/jessevdk/go-flags"
 	"github.com/segmentio/ksuid"
 
 	dbConn "github.com/bluffy/forms/adapter/gorm"
+	"github.com/bluffy/forms/app"
 	"github.com/bluffy/forms/config"
-	"github.com/bluffy/forms/server/app"
-	"github.com/bluffy/forms/server/lang"
-	"github.com/bluffy/forms/server/router"
+	"github.com/bluffy/forms/lang"
+	"github.com/bluffy/forms/router"
 	"github.com/bluffy/forms/util/logger/goose_logger"
 	"github.com/bluffy/forms/util/tools"
 	goose_v3 "github.com/pressly/goose/v3"
 	log "github.com/sirupsen/logrus"
 
 	_ "github.com/bluffy/forms/docs" // swagger
-	logger "github.com/gopkgsquad/glogger"
 	"gorm.io/gorm"
 
 	vr "github.com/bluffy/forms/util/validator"
@@ -187,18 +185,20 @@ func Server(appConf *config.Config, opts ArgOptions, args []string) {
 	log.Infof("Starting INTERN Server %v", addressApi)
 	go srvIntern.ListenAndServe()
 
-	if appConf.Debug == true {
-		routerLiveReload := http.NewServeMux()
-		logger := logger.NewLogger(os.Stdout, logger.LogLevelInfo, true)
-		// initialize http.Server
-		srvLiveReload := &http.Server{
-			Addr:    ":35729",
-			Handler: routerLiveReload,
-		}
+	/*
+		if appConf.Debug == true {
+			routerLiveReload := http.NewServeMux()
+			logger := logger.NewLogger(os.Stdout, logger.LogLevelInfo, true)
+			// initialize http.Server
+			srvLiveReload := &http.Server{
+				Addr:    ":35729",
+				Handler: routerLiveReload,
+			}
 
-		// start the application with live reload
-		gloader.NewWatcher(srvLiveReload, time.Second*2, logger).Start()
-	}
+			// start the application with live reload
+			gloader.NewWatcher(srvLiveReload, time.Second*2, logger).Start()
+		}
+	*/
 
 	// create a channel to subscribe ctrl+c/SIGINT event
 	sigInterruptChannel := make(chan os.Signal, 1)

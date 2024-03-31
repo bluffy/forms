@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/bluffy/forms/server/app"
-	"github.com/bluffy/forms/server/service"
+	"github.com/bluffy/forms/app"
+	"github.com/bluffy/forms/service"
 	log "github.com/sirupsen/logrus"
 )
 

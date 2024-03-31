@@ -6,7 +6,7 @@ import (
 
 	"github.com/bluffy/forms/models"
 	"github.com/bluffy/forms/repository"
-	"github.com/bluffy/forms/server/service"
+	"github.com/bluffy/forms/service"
 	"github.com/bluffy/forms/util/tools"
 	log "github.com/sirupsen/logrus"
 )

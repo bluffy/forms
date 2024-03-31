@@ -9,8 +9,8 @@ import (
 	"strconv"
 
 	"github.com/bluffy/forms/config"
+	"github.com/bluffy/forms/lang"
 	"github.com/bluffy/forms/models"
-	"github.com/bluffy/forms/server/lang"
 	val "github.com/bluffy/forms/util/validator"
 	"github.com/go-playground/validator/v10"
 	log "github.com/sirupsen/logrus"

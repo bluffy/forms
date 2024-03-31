@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/bluffy/forms/server/app"
-	"github.com/bluffy/forms/server/app/middleware"
+	"github.com/bluffy/forms/app"
+	"github.com/bluffy/forms/app/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 
