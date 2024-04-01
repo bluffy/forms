@@ -2,9 +2,10 @@ package config
 
 import (
 	"errors"
-	"log"
 	"os"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/creasty/defaults"
 
@@ -73,8 +74,6 @@ type config struct {
 
 func (conf *config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	defaults.Set(conf)
-
-	log.Println(conf)
 	type plain config
 	if err := unmarshal((*plain)(conf)); err != nil {
 		return err
@@ -95,6 +94,8 @@ func LoadConfig(configFile string) (*config, error) {
 		return nil, err
 	}
 	defer file.Close()
+
+	log.Info("Config File: " + configFile)
 
 	d := yaml.NewDecoder(file)
 	if err := d.Decode(&config); err != nil {

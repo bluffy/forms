@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"goapp/config"
 	"goapp/util/tools"
+	"os"
 
 	"github.com/pressly/goose/v3"
 	"github.com/segmentio/ksuid"
@@ -15,13 +16,24 @@ func init() {
 
 func Up_20221129000000(txn *sql.Tx) error {
 	id := ksuid.New().String()
-
 	email := "dev@bluffy.de"
-	password, err := tools.HashPassword("mgr")
+	password := "mgr"
 
+	envAdminEmail := os.Getenv("INIT_ADMIN_EMAIL")
+	envAdminPassword := os.Getenv("INIT_ADMIN_PASSWORD")
+
+	if envAdminEmail != "" {
+		email = envAdminEmail
+	}
+	if envAdminPassword != "" {
+		password = envAdminEmail
+	}
+
+	password, err := tools.HashPassword(password)
 	if err != nil {
 		return err
 	}
+
 	sql := ""
 	switch dbType := config.Conf.Database.Type; dbType {
 	case "mysql":

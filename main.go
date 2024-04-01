@@ -33,10 +33,12 @@ import (
 )
 
 type ArgOptions struct {
-	Config  string `short:"c" long:"config" description:"config.yaml file"`
-	Migrate string `short:"m" long:"migrate" description:"DB mirgrate tool" choice:"up" choice:"down" choice:"status" choice:"version" choice:"reset" choice:"up-by-one" choice:"up-to" choice:"down-to"`
-	PWHash  string `short:"p" long:"password" description:"Password Hash"`
-	UID     bool   `short:"u" long:"uid" description:"UID"`
+	Config            string `short:"c" long:"config" description:"config.yaml file"`
+	Migrate           string `short:"m" long:"migrate" description:"DB mirgrate tool" choice:"up" choice:"down" choice:"status" choice:"version" choice:"reset" choice:"up-by-one" choice:"up-to" choice:"down-to"`
+	PWHash            string `short:"p" long:"password" description:"Password Hash"`
+	UID               bool   `short:"u" long:"uid" description:"UID"`
+	InitAdminEmail    string `long:"init-admin-email" description:"init admin email (dev@bluffy.de)"`
+	InitAdminPassword string `long:"init-admin-password" description:"init admin email (mgr)"`
 }
 
 /*
@@ -73,8 +75,15 @@ func main() {
 		return
 	}
 
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
 	if opts.Config != "" {
 		configFile = opts.Config
+	} else if os.Getenv("CONFIG_FILE") != "" {
+		configFile = os.Getenv("CONFIG_FILE")
 	}
 
 	_, err = config.LoadConfig(configFile)
@@ -89,6 +98,13 @@ func main() {
 	} else {
 		log.Info("PRODUCTION Mode")
 		log.SetLevel(log.InfoLevel)
+	}
+
+	if opts.InitAdminEmail != "" {
+		os.Setenv("INIT_ADMIN_EMAIL", opts.InitAdminEmail)
+	}
+	if opts.InitAdminPassword != "" {
+		os.Setenv("INIT_ADMIN_PASSWORD", opts.InitAdminPassword)
 	}
 
 	if opts.PWHash != "" {
@@ -265,8 +281,13 @@ func migrate(db *gorm.DB, migrateCMD string, migrateArgs []string, dialect strin
 		}
 	}
 	if migrateCMD == "down" {
-		if err := goose_v3.Down(appDb, "migrations"); err != nil {
-			log.Fatal(err)
+		if config.Conf.Dev != true {
+			log.Fatal("command not allowd in PROD")
+		} else {
+			if err := goose_v3.Down(appDb, "migrations"); err != nil {
+				log.Fatal(err)
+			}
+
 		}
 	}
 	if migrateCMD == "status" {
@@ -280,9 +301,15 @@ func migrate(db *gorm.DB, migrateCMD string, migrateArgs []string, dialect strin
 		}
 	}
 	if migrateCMD == "reset" {
-		if err := goose_v3.Reset(appDb, "migrations"); err != nil {
-			log.Fatal(err)
+		if config.Conf.Dev != true {
+			log.Fatal("command not allowd in PROD")
+		} else {
+			if err := goose_v3.Reset(appDb, "migrations"); err != nil {
+				log.Fatal(err)
+			}
+
 		}
+
 	}
 	if migrateCMD == "up-by-one" {
 		if err := goose_v3.Reset(appDb, "migrations"); err != nil {
@@ -304,9 +331,15 @@ func migrate(db *gorm.DB, migrateCMD string, migrateArgs []string, dialect strin
 				log.Fatal(err)
 			}
 		} else {
-			if err := goose_v3.DownTo(appDb, "migrations", version); err != nil {
-				log.Fatal(err)
+			if config.Conf.Dev != true {
+				log.Fatal("command not allowd in PROD")
+			} else {
+				if err := goose_v3.DownTo(appDb, "migrations", version); err != nil {
+					log.Fatal(err)
+				}
+
 			}
+
 		}
 
 	}

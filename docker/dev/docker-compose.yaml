@@ -31,7 +31,10 @@ services:
      - "4090:4090"        
      - "4091:4091"   
     extra_hosts:
-      - "host.docker.internal:host-gateway"       
+      - "host.docker.internal:host-gateway"    
+    environment:
+      - INIT_ADMIN_EMAIL=dev@bluffy.de
+      - INIT_ADMIN_PASSWORD=mgr   
   client:
     image: qpc-client
     container_name: goapp-client-dev

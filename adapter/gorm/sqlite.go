@@ -3,7 +3,8 @@ package gorm
 import (
 	"goapp/config"
 	"goapp/util/logger/gorm_logger"
-	"log"
+
+	log "github.com/sirupsen/logrus"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -11,7 +12,7 @@ import (
 
 func openSqlite() (*gorm.DB, error) {
 
-	log.Print(config.Conf.Database.Path)
+	log.Info("SQL File: " + config.Conf.Database.Path)
 
 	return gorm.Open(sqlite.Open(config.Conf.Database.Path), &gorm.Config{
 		Logger: gorm_logger.New(),
