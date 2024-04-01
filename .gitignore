@@ -23,3 +23,7 @@ config.yaml
 /server/app/version/
 gin-bin
 tmp/*
+docker/dev/.env
+docker/dev/docker-compose.example.yaml
+.main-air
+/app/client

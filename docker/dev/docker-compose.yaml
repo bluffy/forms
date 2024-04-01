@@ -1,0 +1,45 @@
+version: '3.3'
+services:
+  db:
+    container_name: bluffy-forms-adminer-mysql
+    image: mysql:5.7
+    #restart: always
+    environment:
+      MYSQL_DATABASE:
+      MYSQL_USER:
+      MYSQL_PASSWORD:
+      MYSQL_ROOT_PASSWORD:
+    ports:
+      - '3306:3306'
+    volumes:
+      - bluffy-forms-db-dev:/var/lib/mysql
+  adminer:
+    container_name: bluffy-forms-adminer-dev
+    image: adminer
+    restart: always
+    ports:
+      - 9092:8080 
+  app:
+    container_name: bluffy-forms-app-dev
+    restart: always
+    build:
+        context: "${PWD}"
+        dockerfile: ${PWD}/docker/dev/server.Dockerfile
+    volumes:
+        - '${PWD}/.:/go/src/github.com/bluffy/forms'  
+    ports:
+     - "4090:4090"        
+     - "4091:4091"     
+  client:
+    image: qpc-client
+    build:
+      context: "${PWD}"
+      dockerfile: ${PWD}/docker/dev/client-v3.Dockerfile
+    volumes:
+      - '${PWD}/webapp/v3:/webapp/app'
+      - '${PWD}/app/client:/app/client'        
+    environment:
+      LOCAL_USER_ID:          
+# Names our volume
+volumes:
+  bluffy-forms-db-dev:

@@ -41,6 +41,7 @@ type ArgOptions struct {
 var embedMigrations embed.FS
 
 type ArgOptions struct {
+	Config  string `short:"c" long:"config" description:"config.yaml file"`
 	Migrate string `short:"m" long:"migrate" description:"DB mirgrate tool" choice:"up" choice:"down" choice:"status" choice:"version" choice:"reset" choice:"up-by-one" choice:"up-to" choice:"down-to"`
 	PWHash  string `short:"p" long:"password" description:"Password Hash"`
 	UID     bool   `short:"u" long:"uid" description:"UID"`
@@ -56,13 +57,24 @@ func main() {
 	var opts ArgOptions
 	var err error
 	var args []string
+	var configFile = "config.yaml"
 
 	log.SetFormatter(&log.TextFormatter{
 		ForceColors:   true,
 		FullTimestamp: true,
 	})
 
-	appConf, err := config.AppConfig("config.yaml")
+	args, err = flags.ParseArgs(&opts, os.Args)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	if opts.Config != "" {
+		configFile = opts.Config
+	}
+
+	appConf, err := config.AppConfig(configFile)
 	if err != nil {
 		log.WithField("error", err).Fatal("Error in reading Config File")
 		return
@@ -74,12 +86,6 @@ func main() {
 	} else {
 		log.Info("PRODUCTION Mode")
 		log.SetLevel(log.InfoLevel)
-	}
-
-	args, err = flags.ParseArgs(&opts, os.Args)
-	if err != nil {
-		log.Fatal(err)
-		return
 	}
 
 	if opts.PWHash != "" {

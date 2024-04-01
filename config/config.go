@@ -9,10 +9,11 @@ import (
 )
 
 type Config struct {
-	Dev         bool
-	Debug       bool
-	Language    string `default:"en"`
-	LogLanguage string `yaml:"log_language" default:"en"`
+	Dev            bool
+	Debug          bool
+	Language       string `default:"en"`
+	LogLanguage    string `yaml:"log_language" default:"en"`
+	UseEmbedClient bool   `yaml:"use_embed_client" default:"true"`
 
 	Server struct {
 		Port                 int           `yaml:"port" default:"4090"`

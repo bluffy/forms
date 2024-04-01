@@ -174,18 +174,17 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 			r.Use(middleware.ContentTypeJson)
 		})
 	})
-
-	r.Get("/", a.PageHome)
-
 	/*
-		if a.Conf().UseEmbedClient {
-			r.Get("/*", a.HandleClient)
-		} else {
-			r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-				w.Write([]byte("welcome"))
-			})
-		}
+		r.Get("/", a.PageHome)
 	*/
+
+	if a.Conf().UseEmbedClient {
+		r.Get("/*", a.HandleClient)
+	} else {
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("welcome"))
+		})
+	}
 
 	r.Mount("/swagger", httpSwagger.WrapHandler)
 	return r
