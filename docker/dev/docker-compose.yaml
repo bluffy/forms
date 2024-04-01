@@ -33,6 +33,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"    
     environment:
+      - CGO_ENABLED=1
       - INIT_ADMIN_EMAIL=dev@bluffy.de
       - INIT_ADMIN_PASSWORD=mgr   
   client:

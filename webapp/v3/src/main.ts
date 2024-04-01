@@ -1,5 +1,16 @@
-import { createApp } from 'vue'
-import './style.css'
-import App from './App.vue'
 
-createApp(App).mount('#app')
+import App from './App.vue'
+import { createApp } from 'vue'
+import { registerPlugins } from './plugins'
+
+//import './style.css'
+import './style/App.scss'
+import 'bootstrap/dist/js/bootstrap.js'
+
+
+const app = createApp(App)
+
+
+registerPlugins(app)
+
+app.mount('#app')

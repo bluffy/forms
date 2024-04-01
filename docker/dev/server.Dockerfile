@@ -2,7 +2,7 @@
 ## Fop support
 #FROM cidb/fop:19-jdk-alpine3.16-fop2.5-go1.18
 FROM golang:1.22.1-alpine3.19
-RUN apk update && apk upgrade && apk add --no-cache ca-certificates  bash su-exec  \
+RUN apk update && apk upgrade && apk add --no-cache ca-certificates build-base bash su-exec sqlite \
         && update-ca-certificates 2>/dev/null || true
 ENV APP_NAME blforms
 # Add Maintainer Info

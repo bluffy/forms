@@ -28,4 +28,4 @@ docker/dev/docker-compose.example.yaml
 .main-air
 /app/client
 config.dev.yaml
-database.db
+/database*.db
