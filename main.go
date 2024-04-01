@@ -230,6 +230,7 @@ func Server(appConf *config.Config, opts ArgOptions, args []string) {
 
 	sqlDB, err := db.DB()
 	if err == nil {
+		log.Info("Shutting down DB Server")
 		if err = sqlDB.Close(); err != nil {
 			log.WithField("error", err).Warn("Db connection closing failure")
 		}
