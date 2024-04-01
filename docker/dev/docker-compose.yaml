@@ -29,9 +29,12 @@ services:
         - '${PWD}/.:/go/src/github.com/bluffy/forms'  
     ports:
      - "4090:4090"        
-     - "4091:4091"     
+     - "4091:4091"   
+    extra_hosts:
+      - "host.docker.internal:host-gateway"       
   client:
     image: qpc-client
+    container_name: bluffy-forms-client-dev
     build:
       context: "${PWD}"
       dockerfile: ${PWD}/docker/dev/client-v3.Dockerfile

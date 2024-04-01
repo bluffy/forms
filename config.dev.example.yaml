@@ -1,7 +1,7 @@
 debug: true
 database:
   type: mysql
-  host: 128.140.68.242
+  host: host.docker.internal
   port: 3306
   username: bluffyforms
   password: bluffyforms
