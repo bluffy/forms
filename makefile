@@ -5,8 +5,8 @@ dev-prepare:    ## copy Dev Files from Example
 	./scripts/bash/prepare-dev.sh
 
 dev-up: 	## run Dev Daimlertuck
-	docker compose --env-file ./docker/dev/.env -f docker/dev/docker-compose.yaml -p bluffy-forms-dev build
-	docker compose --env-file ./docker/dev/.env -f docker/dev/docker-compose.yaml -p bluffy-forms-dev up
+	docker compose --env-file ./docker/dev/.env -f docker/dev/docker-compose.yaml -p goapp-dev build
+	docker compose --env-file ./docker/dev/.env -f docker/dev/docker-compose.yaml -p goapp-dev up
 
 dev-down: 	## run Dev Daimlertuck
-	docker compose --env-file ./docker/dev/.env -f docker/dev/docker-compose.yaml -p bluffy-forms-dev down
+	docker compose --env-file ./docker/dev/.env -f docker/dev/docker-compose.yaml -p goapp-dev down

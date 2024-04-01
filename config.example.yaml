@@ -3,6 +3,6 @@ database:
   type: mysql
   host: localhost
   port: 3306
-  username: bluffyforms
-  password: bluffyforms
-  database: bluffyforms
+  username: db_app_user
+  password: db_app_password
+  database: db_app

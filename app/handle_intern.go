@@ -6,7 +6,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/bluffy/forms/repository"
+	"goapp/repository"
 )
 
 // HandleQueryGet godoc

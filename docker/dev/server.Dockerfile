@@ -6,8 +6,8 @@ RUN apk update && apk upgrade && apk add --no-cache ca-certificates  bash su-exe
         && update-ca-certificates 2>/dev/null || true
 ENV APP_NAME blforms
 # Add Maintainer Info
-LABEL maintainer="Mario mario@bluffy.de"
-WORKDIR /go/src/github.com/bluffy/forms
+LABEL maintainer="Mario github@bluffy.de"
+WORKDIR /go/src/goapp
 #COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 #RUN chmod +x /usr/local/bin/entrypoint.sh
 

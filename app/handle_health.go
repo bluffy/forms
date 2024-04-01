@@ -10,7 +10,7 @@ func (app *App) HanlderHealth(res http.ResponseWriter, req *http.Request) {
 
 	/*
 		var err error
-		if !app.conf.UseDad {
+		if !config.Conf.UseDad {
 			err = oracle.Ping()
 		}
 

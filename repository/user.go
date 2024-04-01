@@ -1,7 +1,8 @@
 package repository
 
 import (
-	"github.com/bluffy/forms/models"
+	"goapp/models"
+
 	"gorm.io/gorm"
 )
 

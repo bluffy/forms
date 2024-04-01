@@ -3,6 +3,6 @@ database:
   type: mysql
   host: host.docker.internal
   port: 3306
-  username: bluffyforms
-  password: bluffyforms
-  database: bluffyforms
+  username: goapp
+  password: goapp
+  database: goapp

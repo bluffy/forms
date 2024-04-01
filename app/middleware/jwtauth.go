@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/bluffy/forms/app"
-	"github.com/bluffy/forms/service"
+	"goapp/app"
+	"goapp/config"
+	"goapp/service"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -49,10 +51,10 @@ func JWTAuth(a *app.App) func(next http.Handler) http.Handler {
 			}
 
 			jwt := service.Jwt{
-				TokenLifeTime:        a.Conf().Server.TokenLifeTime,
-				TokenRefreshLifeTime: a.Conf().Server.TokenRefreshLifeTime,
-				TokenRefreshAllowd:   a.Conf().Server.TokenRefreshAllowed,
-				TokenKey:             a.Conf().Server.TokenKey,
+				TokenLifeTime:        config.Conf.Server.TokenLifeTime,
+				TokenRefreshLifeTime: config.Conf.Server.TokenRefreshLifeTime,
+				TokenRefreshAllowd:   config.Conf.Server.TokenRefreshAllowed,
+				TokenKey:             config.Conf.Server.TokenKey,
 			}
 
 			user, _, err := jwt.ValidateToken(token)

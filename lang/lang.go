@@ -2,6 +2,7 @@ package lang
 
 import (
 	"embed"
+	"goapp/config"
 	"io/fs"
 
 	log "github.com/sirupsen/logrus"
@@ -50,11 +51,11 @@ type Code struct {
 	}
 */
 
-func AppLang(defaultLang string, logLang string, langFS embed.FS) *Lang {
+func AppLang(langFS embed.FS) *Lang {
 	var files []string
 	var language Lang
-	language.Default = defaultLang
-	language.Log = logLang
+	language.Default = config.Conf.Language
+	language.Log = config.Conf.LogLanguage
 	language.Region = make(map[string]Region)
 
 	if err := fs.WalkDir(langFS, ".", func(path string, d fs.DirEntry, err error) error {

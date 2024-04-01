@@ -6,7 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bluffy/forms/models"
+	"goapp/models"
+
 	"github.com/golang-jwt/jwt"
 )
 

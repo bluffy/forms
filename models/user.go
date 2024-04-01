@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/bluffy/forms/adapter/gorm"
+	"goapp/adapter/gorm"
 )
 
 type Users []*User

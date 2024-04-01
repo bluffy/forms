@@ -6,8 +6,10 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/bluffy/forms/app"
-	"github.com/bluffy/forms/app/middleware"
+	"goapp/app"
+	"goapp/app/middleware"
+	"goapp/config"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 
@@ -102,7 +104,7 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 
 	//workDir, _ := os.Getwd()
 	//assetsDir := http.Dir("./public/assets/")
-	//pdfDir := http.Dir(a.Conf().File.FileDataDir)
+	//pdfDir := http.Dir(config.Conf.File.FileDataDir)
 
 	//fileServer(r, "/assets", assetsDir)
 	//pdfDir := http.Dir("./public/assets/")
@@ -178,7 +180,7 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 		r.Get("/", a.PageHome)
 	*/
 
-	if a.Conf().UseEmbedClient {
+	if config.Conf.UseEmbedClient {
 		r.Get("/*", a.HandleClient)
 	} else {
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {

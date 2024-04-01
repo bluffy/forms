@@ -5,20 +5,21 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/bluffy/forms/app"
-	"github.com/bluffy/forms/app/middleware"
+	"goapp/app"
+	"goapp/app/middleware"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/sirupsen/logrus"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-// @title bluffy-forms app intern server
+// @title intern server
 // @version 1.0
 // @description
 
 // @contact.name API Support
-// @contact.email mario@bluffy.de
+// @contact.email github@bluffy.de
 
 // @schemes  http https
 // @BasePath /

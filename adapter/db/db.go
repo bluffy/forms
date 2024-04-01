@@ -2,22 +2,21 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
+	"errors"
 
-	"github.com/bluffy/forms/config"
-
-	"github.com/go-sql-driver/mysql"
+	"goapp/config"
 )
 
 func New(conf *config.Config) (*sql.DB, error) {
-	cfg := &mysql.Config{
-		Net:                  "tcp",
-		Addr:                 fmt.Sprintf("%v:%v", conf.Database.Host, conf.Database.Port),
-		DBName:               conf.Database.Database,
-		User:                 conf.Database.Username,
-		Passwd:               conf.Database.Password,
-		AllowNativePasswords: true,
-		ParseTime:            true,
+	if conf.Database.Type == "mysql" {
+		return openMysql(conf)
 	}
-	return sql.Open("mysql", cfg.FormatDSN())
+	return nil, errors.New("no database Connector found! wrong type? (mysql,sqlite)")
+	/*
+		if conf.Db.Type == 2 {
+			return open(conf)
+		} else {
+			return open(conf)
+		}
+	*/
 }

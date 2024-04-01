@@ -13,21 +13,30 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/segmentio/ksuid"
 
-	dbConn "github.com/bluffy/forms/adapter/gorm"
-	"github.com/bluffy/forms/app"
-	"github.com/bluffy/forms/config"
-	"github.com/bluffy/forms/lang"
-	"github.com/bluffy/forms/router"
-	"github.com/bluffy/forms/util/logger/goose_logger"
-	"github.com/bluffy/forms/util/tools"
+	dbConn "goapp/adapter/gorm"
+	"goapp/app"
+	"goapp/config"
+	"goapp/lang"
+	"goapp/router"
+	"goapp/util/logger/goose_logger"
+	"goapp/util/tools"
+
 	goose_v3 "github.com/pressly/goose/v3"
 	log "github.com/sirupsen/logrus"
 
-	_ "github.com/bluffy/forms/docs" // swagger
+	_ "goapp/docs" // swagger
+
 	"gorm.io/gorm"
 
-	vr "github.com/bluffy/forms/util/validator"
+	vr "goapp/util/validator"
 )
+
+type ArgOptions struct {
+	Config  string `short:"c" long:"config" description:"config.yaml file"`
+	Migrate string `short:"m" long:"migrate" description:"DB mirgrate tool" choice:"up" choice:"down" choice:"status" choice:"version" choice:"reset" choice:"up-by-one" choice:"up-to" choice:"down-to"`
+	PWHash  string `short:"p" long:"password" description:"Password Hash"`
+	UID     bool   `short:"u" long:"uid" description:"UID"`
+}
 
 /*
 type ArgOptions struct {
@@ -39,13 +48,6 @@ type ArgOptions struct {
 
 //go:embed migrations
 var embedMigrations embed.FS
-
-type ArgOptions struct {
-	Config  string `short:"c" long:"config" description:"config.yaml file"`
-	Migrate string `short:"m" long:"migrate" description:"DB mirgrate tool" choice:"up" choice:"down" choice:"status" choice:"version" choice:"reset" choice:"up-by-one" choice:"up-to" choice:"down-to"`
-	PWHash  string `short:"p" long:"password" description:"Password Hash"`
-	UID     bool   `short:"u" long:"uid" description:"UID"`
-}
 
 //go:embed public/*
 var publicFS embed.FS
@@ -74,13 +76,13 @@ func main() {
 		configFile = opts.Config
 	}
 
-	appConf, err := config.AppConfig(configFile)
+	_, err = config.LoadConfig(configFile)
 	if err != nil {
 		log.WithField("error", err).Fatal("Error in reading Config File")
 		return
 	}
 
-	if appConf.Debug {
+	if config.Conf.Debug {
 		log.Info("DEBUG Mode")
 		log.SetLevel(log.DebugLevel)
 	} else {
@@ -104,15 +106,15 @@ func main() {
 		return
 	}
 
-	Server(appConf, opts, args)
+	Server(opts, args)
 }
 
-// @title bluffy-forms app server
+// @title  app server
 // @version 1.0
 // @description app server
 
 // @contact.name API Support
-// @contact.email mario@bluffy.de
+// @contact.email github@bluffy.de
 
 // @schemes  http https
 // @BasePath /
@@ -122,20 +124,20 @@ func main() {
 // @name Authorization
 // @description Type "Token" followed by a space and JWT token.
 // Server function creates start Listenen Server
-func Server(appConf *config.Config, opts ArgOptions, args []string) {
+func Server(opts ArgOptions, args []string) {
 
 	var db *gorm.DB
 	var err error
 
-	log.Info("Set Language: " + appConf.Language)
+	log.Info("Set Language: " + config.Conf.Language)
 
-	appLang := lang.AppLang(appConf.Language, appConf.LogLanguage, dataFS)
+	appLang := lang.AppLang(dataFS)
 
 	// check DB Connection on Start 100 times
-	log.Info("Connect Database: " + appConf.Database.Type)
+	log.Info("Connect Database: " + config.Conf.Database.Type)
 
 	for i := 1; i <= 100; i++ {
-		db, err = dbConn.New(appConf)
+		db, err = dbConn.New()
 		if err != nil {
 			log.Error(err)
 		} else {
@@ -147,8 +149,8 @@ func Server(appConf *config.Config, opts ArgOptions, args []string) {
 		log.Error("Start Failed: Stopped Trying DB Connection")
 		return
 	}
-	log.Info("Start Migrate: " + appConf.Database.Type)
-	if migrate(db, opts.Migrate, args, appConf.Database.Type) {
+	log.Info("Start Migrate: " + config.Conf.Database.Type)
+	if migrate(db, opts.Migrate, args, config.Conf.Database.Type) {
 		log.Info("Program exited")
 		return
 	}
@@ -162,10 +164,10 @@ func Server(appConf *config.Config, opts ArgOptions, args []string) {
 
 	validator := vr.New()
 
-	addressApp := fmt.Sprintf(":%d", appConf.Server.Port)
-	addressApi := fmt.Sprintf(":%d", appConf.Server.PortIntern)
+	addressApp := fmt.Sprintf(":%d", config.Conf.Server.Port)
+	addressApi := fmt.Sprintf(":%d", config.Conf.Server.PortIntern)
 
-	application := app.New(appConf, validator, appLang, db)
+	application := app.New(validator, appLang, db)
 
 	appRouter := router.NewApp(application, publicFS)
 	internRouter := router.NewIntern(application, publicFS)
@@ -173,17 +175,17 @@ func Server(appConf *config.Config, opts ArgOptions, args []string) {
 	srv := &http.Server{
 		Addr:         addressApp,
 		Handler:      appRouter,
-		ReadTimeout:  appConf.Server.TimeoutRead,
-		WriteTimeout: appConf.Server.TimeoutWrite,
-		IdleTimeout:  appConf.Server.TimeoutIdle,
+		ReadTimeout:  config.Conf.Server.TimeoutRead,
+		WriteTimeout: config.Conf.Server.TimeoutWrite,
+		IdleTimeout:  config.Conf.Server.TimeoutIdle,
 	}
 
 	srvIntern := &http.Server{
 		Addr:         addressApi,
 		Handler:      internRouter,
-		ReadTimeout:  appConf.Server.TimeoutRead,
-		WriteTimeout: appConf.Server.TimeoutWrite,
-		IdleTimeout:  appConf.Server.TimeoutIdle,
+		ReadTimeout:  config.Conf.Server.TimeoutRead,
+		WriteTimeout: config.Conf.Server.TimeoutWrite,
+		IdleTimeout:  config.Conf.Server.TimeoutIdle,
 	}
 
 	log.Infof("Starting APP Server %v", addressApp)
@@ -192,7 +194,7 @@ func Server(appConf *config.Config, opts ArgOptions, args []string) {
 	go srvIntern.ListenAndServe()
 
 	/*
-		if appConf.Debug == true {
+		if config.Conf.Debug == true {
 			routerLiveReload := http.NewServeMux()
 			logger := logger.NewLogger(os.Stdout, logger.LogLevelInfo, true)
 			// initialize http.Server
@@ -215,7 +217,7 @@ func Server(appConf *config.Config, opts ArgOptions, args []string) {
 
 	// create a context which will expire after 4 seconds of grace period
 	timeout := time.Second * 4
-	if appConf.Dev {
+	if config.Conf.Dev {
 		timeout = time.Second
 	}
 

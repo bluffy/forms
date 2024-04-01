@@ -8,10 +8,11 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/bluffy/forms/config"
-	"github.com/bluffy/forms/lang"
-	"github.com/bluffy/forms/models"
-	val "github.com/bluffy/forms/util/validator"
+	"goapp/config"
+	"goapp/lang"
+	"goapp/models"
+	val "goapp/util/validator"
+
 	"github.com/go-playground/validator/v10"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -36,7 +37,6 @@ var versionFS embed.FS
 var version = "0.0.0"
 
 type App struct {
-	conf      *config.Config
 	validator *validator.Validate
 	lang      *lang.Lang
 	db        *gorm.DB
@@ -48,14 +48,12 @@ type App struct {
 }
 
 func New(
-	conf *config.Config,
 	validator *validator.Validate,
 	lang *lang.Lang,
 	db *gorm.DB,
 ) *App {
 
 	return &App{
-		conf:      conf,
 		validator: validator,
 		lang:      lang,
 		//openIds: openIds,
@@ -82,12 +80,8 @@ func (app *App) User() *models.UserDto {
 	return app.user
 }
 
-func (app *App) Conf() *config.Config {
-	return app.conf
-}
-
 func printError(app *App, w http.ResponseWriter, status int, msg string, err error) {
-	if err != nil && app.conf.Debug {
+	if err != nil && config.Conf.Debug {
 		_, fn, line, _ := runtime.Caller(1)
 		log.WithFields(log.Fields{
 			"func": fn,
@@ -122,7 +116,7 @@ func printError(app *App, w http.ResponseWriter, status int, msg string, err err
 
 }
 func (a *App) printError(w http.ResponseWriter, status int, code int, err error, lang string) {
-	if err != nil && a.conf.Debug {
+	if err != nil && config.Conf.Debug {
 		_, fn, line, _ := runtime.Caller(1)
 		log.WithFields(log.Fields{
 			"func":    fn,

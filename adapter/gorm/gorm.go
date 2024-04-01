@@ -1,15 +1,10 @@
 package gorm
 
 import (
-	"fmt"
+	"errors"
+	"goapp/config"
 	"time"
 
-	"github.com/bluffy/forms/config"
-
-	"github.com/bluffy/forms/util/logger/gorm_logger"
-
-	gosql "github.com/go-sql-driver/mysql"
-	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -21,20 +16,10 @@ type ModelUID struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
-func New(conf *config.Config) (*gorm.DB, error) {
-
-	cfg := &gosql.Config{
-		Net:                  "tcp",
-		Addr:                 fmt.Sprintf("%v:%v", conf.Database.Host, conf.Database.Port),
-		DBName:               conf.Database.Database,
-		User:                 conf.Database.Username,
-		Passwd:               conf.Database.Password,
-		AllowNativePasswords: true,
-		ParseTime:            true,
+func New() (*gorm.DB, error) {
+	if config.Conf.Database.Type == "mysql" {
+		return openMysql()
 	}
-
-	return gorm.Open(mysql.Open(cfg.FormatDSN()), &gorm.Config{
-		Logger: gorm_logger.New(),
-	})
+	return nil, errors.New("no database Connector found! wrong type? (mysql,sqlite)")
 
 }

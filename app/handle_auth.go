@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/bluffy/forms/models"
-	"github.com/bluffy/forms/repository"
-	"github.com/bluffy/forms/service"
-	"github.com/bluffy/forms/util/tools"
+	"goapp/config"
+	"goapp/models"
+	"goapp/repository"
+	"goapp/service"
+	"goapp/util/tools"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -48,10 +50,10 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jwt := service.Jwt{
-		TokenLifeTime:        app.conf.Server.TokenLifeTime,
-		TokenRefreshLifeTime: app.conf.Server.TokenRefreshLifeTime,
-		TokenRefreshAllowd:   app.conf.Server.TokenRefreshAllowed,
-		TokenKey:             app.conf.Server.TokenKey,
+		TokenLifeTime:        config.Conf.Server.TokenLifeTime,
+		TokenRefreshLifeTime: config.Conf.Server.TokenRefreshLifeTime,
+		TokenRefreshAllowd:   config.Conf.Server.TokenRefreshAllowed,
+		TokenKey:             config.Conf.Server.TokenKey,
 	}
 
 	userDto := user.ToDto()

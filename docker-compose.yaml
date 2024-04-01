@@ -1,0 +1,24 @@
+version: '3.3'
+services:
+  db:
+    container_name: goapp-mysql-test
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: goapp
+      MYSQL_USER: goapp
+      MYSQL_PASSWORD: goapp
+      MYSQL_ROOT_PASSWORD: mgr
+    ports:
+      - '3306:3306'
+    volumes:
+      - goapp-test-dev:/var/lib/mysql
+  adminer:
+    container_name: goapp-adminer-test
+    image: adminer
+    restart: always
+    ports:
+      - 9092:8080          
+# Names our volume
+volumes:
+  goapp-test-dev:

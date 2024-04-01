@@ -1,6 +1,6 @@
 package models
 
-import "github.com/bluffy/forms/adapter/gorm"
+import "goapp/adapter/gorm"
 
 type Sessions []*Session
 type Session struct {

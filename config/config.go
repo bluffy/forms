@@ -1,14 +1,45 @@
 package config
 
 import (
+	"errors"
+	"log"
 	"os"
 	"time"
 
 	"github.com/creasty/defaults"
+
 	"gopkg.in/yaml.v2"
 )
 
-type Config struct {
+var Conf *config
+
+/*
+func init() {
+	configFile := "config.yaml"
+	var opts ArgOptions
+
+	log.Println("TEST")
+	_, err := flags.ParseArgs(&opts, os.Args)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	if opts.Config != "" {
+		configFile = opts.Config
+	}
+
+	Conf, err := AppConfig(configFile)
+
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	log.Info(Conf)
+
+}
+*/
+
+type config struct {
 	Dev            bool
 	Debug          bool
 	Language       string `default:"en"`
@@ -39,19 +70,24 @@ type Config struct {
 	}
 }
 
-func (conf *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (conf *config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	defaults.Set(conf)
 
-	type plain Config
+	log.Println(conf)
+	type plain config
 	if err := unmarshal((*plain)(conf)); err != nil {
 		return err
 	}
 	return nil
 }
 
-func AppConfig(configFile string) (*Config, error) {
+func LoadConfig(configFile string) (*config, error) {
 
-	config := &Config{}
+	if Conf != nil {
+		return nil, errors.New("config already loaded!")
+	}
+
+	config := &config{}
 
 	file, err := os.Open(configFile)
 	if err != nil {
@@ -63,6 +99,9 @@ func AppConfig(configFile string) (*Config, error) {
 	if err := d.Decode(&config); err != nil {
 		return nil, err
 	}
+
+	Conf = config
+	_ = Conf
 
 	return config, nil
 }
