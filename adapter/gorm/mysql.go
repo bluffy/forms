@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"goapp/config"
-	_ "goapp/migrations/mysql"
 	"goapp/util/logger/gorm_logger"
 
 	gosql "github.com/go-sql-driver/mysql"

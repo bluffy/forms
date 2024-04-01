@@ -20,6 +20,9 @@ func New() (*gorm.DB, error) {
 	if config.Conf.Database.Type == "mysql" {
 		return openMysql()
 	}
+	if config.Conf.Database.Type == "sqlite" {
+		return openSqlite()
+	}
 	return nil, errors.New("no database Connector found! wrong type? (mysql,sqlite)")
 
 }

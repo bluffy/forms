@@ -25,6 +25,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	_ "goapp/docs" // swagger
+	_ "goapp/migrations"
 
 	"gorm.io/gorm"
 
@@ -259,32 +260,32 @@ func migrate(db *gorm.DB, migrateCMD string, migrateArgs []string, dialect strin
 	}
 
 	if migrateCMD == "up" {
-		if err := goose_v3.Up(appDb, "migrations/"+dialect); err != nil {
+		if err := goose_v3.Up(appDb, "migrations"); err != nil {
 			log.Fatal(err)
 		}
 	}
 	if migrateCMD == "down" {
-		if err := goose_v3.Down(appDb, "migrations/"+dialect); err != nil {
+		if err := goose_v3.Down(appDb, "migrations"); err != nil {
 			log.Fatal(err)
 		}
 	}
 	if migrateCMD == "status" {
-		if err := goose_v3.Status(appDb, "migrations/"+dialect); err != nil {
+		if err := goose_v3.Status(appDb, "migrations"); err != nil {
 			log.Fatal(err)
 		}
 	}
 	if migrateCMD == "version" {
-		if err := goose_v3.Version(appDb, "migrations/"+dialect); err != nil {
+		if err := goose_v3.Version(appDb, "migrations"); err != nil {
 			log.Fatal(err)
 		}
 	}
 	if migrateCMD == "reset" {
-		if err := goose_v3.Reset(appDb, "migrations/"+dialect); err != nil {
+		if err := goose_v3.Reset(appDb, "migrations"); err != nil {
 			log.Fatal(err)
 		}
 	}
 	if migrateCMD == "up-by-one" {
-		if err := goose_v3.Reset(appDb, "migrations/"+dialect); err != nil {
+		if err := goose_v3.Reset(appDb, "migrations"); err != nil {
 			log.Fatal(err)
 		}
 	}
@@ -299,11 +300,11 @@ func migrate(db *gorm.DB, migrateCMD string, migrateArgs []string, dialect strin
 		}
 
 		if migrateCMD == "up-to" {
-			if err := goose_v3.UpTo(appDb, "migrations/"+dialect, version); err != nil {
+			if err := goose_v3.UpTo(appDb, "migrations", version); err != nil {
 				log.Fatal(err)
 			}
 		} else {
-			if err := goose_v3.DownTo(appDb, "migrations/"+dialect, version); err != nil {
+			if err := goose_v3.DownTo(appDb, "migrations", version); err != nil {
 				log.Fatal(err)
 			}
 		}
@@ -313,11 +314,11 @@ func migrate(db *gorm.DB, migrateCMD string, migrateArgs []string, dialect strin
 		return true
 	}
 
-	if err := goose_v3.Up(appDb, "migrations/"+dialect); err != nil {
+	if err := goose_v3.Up(appDb, "migrations"); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := goose_v3.Status(appDb, "migrations/"+dialect); err != nil {
+	if err := goose_v3.Status(appDb, "migrations"); err != nil {
 		log.Fatal(err)
 	}
 

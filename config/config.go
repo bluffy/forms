@@ -67,6 +67,7 @@ type config struct {
 		Database string
 		Host     string
 		Port     string
+		Path     string `default:"database.db"`
 	}
 }
 
