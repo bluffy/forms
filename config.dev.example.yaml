@@ -1,9 +1,13 @@
 debug: true
+dev: true
 database:
   type: mysql #sqlite
-  path: database-dev.db
-  host: host.docker.internal
-  port: 3306
-  username: goapp
-  password: goapp
-  database: goapp
+  mysql:
+    host: host.docker.internal
+    port: 3306
+    username: goapp
+    password: goapp
+    database: goapp
+  sqlite:
+    path: database-dev.db
+

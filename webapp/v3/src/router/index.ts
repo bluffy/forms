@@ -5,15 +5,23 @@ import { defineAsyncComponent } from 'vue'
 import NotFound from '../views/NotFound.vue'
 
 
-const routes = [
+const routes = [  
     {
         name: "login",
         path: "/login",
         meta: {
-          analyticsIgnore: true
+          requiresAuth: false
         },
         component: defineAsyncComponent(() => import('../views/Login.vue'))
-      },    
+      },   
+      {
+        name: "dashboard",
+        path: "/",
+        meta: {
+          requiresAuth: true
+        },        
+        component: defineAsyncComponent(() => import('../views/Dashboard.vue'))
+      },      
       {
         name: "NotFound",
         path: "/:pathMatch(.*)",

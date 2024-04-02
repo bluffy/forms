@@ -1,8 +1,11 @@
-debug: true
 database:
   type: mysql
-  host: localhost
-  port: 3306
-  username: db_app_user
-  password: db_app_password
-  database: db_app
+  sqlite:
+    path: database.db
+  mysql:    
+    host: localhost
+    port: 3306
+    username: db_app_user
+    password: db_app_password
+    database: db_app
+

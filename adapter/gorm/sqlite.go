@@ -12,9 +12,9 @@ import (
 
 func openSqlite() (*gorm.DB, error) {
 
-	log.Info("SQL File: " + config.Conf.Database.Path)
+	log.Info("SQL File: " + config.Conf.Database.Sqlite.Path)
 
-	return gorm.Open(sqlite.Open(config.Conf.Database.Path), &gorm.Config{
+	return gorm.Open(sqlite.Open(config.Conf.Database.Sqlite.Path), &gorm.Config{
 		Logger: gorm_logger.New(),
 	})
 

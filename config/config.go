@@ -62,13 +62,17 @@ type config struct {
 	}
 
 	Database struct {
-		Type     string
-		Username string
-		Password string
-		Database string
-		Host     string
-		Port     string
-		Path     string `default:"database.db"`
+		Type  string
+		Mysql struct {
+			Username string
+			Password string
+			Database string
+			Host     string
+			Port     string
+		}
+		Sqlite struct {
+			Path string `default:"database.db"`
+		}
 	}
 }
 
