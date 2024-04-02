@@ -3,6 +3,7 @@
 ## install
 
     go install github.com/wandercn/hotbuild@latest
+    go install github.com/cosmtrek/air@latest
     go install github.com/swaggo/swag/cmd/swag@latest
 
     git config user.name "gitUsername"
