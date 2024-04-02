@@ -1,72 +1,110 @@
 <template>
 <div>
 
-    <form @submit="onSubmit">
+
+    
+
+       
+  
+
+
+    <div class="mb-3 row">
+        <div class="col-12" v-if="pageError">
+            <div class="alert alert-danger" role="alert">
+                {{ pageError }}
+            </div>
+        </div>
+    </div>
+
+    <div  v-if="formValues">
+    <Form  v-slot="{ values }" @submit="onSubmit"  :initial-values="formValues">
         <div class="mb-3 row">
             <div class="col-12" v-if="pageError">
-                <div class="alert alert-primary" role="alert">
+                <div class="alert alert-danger" role="alert">
                     {{ pageError }}
                 </div>
             </div>
-            <div class="col-12">
-                <label for="email" class="form-label">Email</label>
-                <input  id="email" type="text" class="form-control" v-model="email"  v-bind="emailProps" placeholder="max@mustermann.de" />
-                <div class="text-danger">
-                     {{ errors.email }}&nbsp;
-                </div>
-            </div>
-
-            <div class="col-12">
-                <label for="password" class="form-label">Password</label>
-                <input  id="password" type="password" class="form-control" v-model="password"  v-bind="passwordProps" placeholder="secret123" />
-                <div  class="text-danger" >
-                     {{ errors.password }}&nbsp;
-                </div>
+            <div v-for="field in fields">
+                <div class="col-12">
+                    <label :for="field.name" class="form-label">Email</label>
+                    <Field  :id="field.name" :type="field.type" :name="field.name"  class="form-control" placeholder="max@mustermann.de"   />
+                    <div  class="text-danger" >
+                        <ErrorMessage :name="field.name" />&nbsp;
+                    </div>
+                </div>                
             </div>
             <div class="col-12">
                 <button class="btn btn-primary" type="submit">Submit form</button>
             </div>
-   
         </div>
-    
+    </Form>
+</div>
 
-  </form>
-  <!--
-<form ref="form" @submit.prevent="submit()">
-  <div class="mb-3 row">
-    <label for="staticEmail" class="col-sm-2 col-form-label">Email</label>
-    <div class="col-sm-10">
-      <input type="text"  v-model="loginForm.email" placeholder="max@mustermann.de" :rules="ruleEmail" class="form-control-plaintext" id="staticEmail" >
-    </div>
-  </div>
-  <div class="mb-3 row">
-    <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
-    <div class="col-sm-10">
-      <input type="password"  v-model="loginForm.password" placeholder="Geheim123"  :rules="rulePasswort" class="form-control" id="inputPassword">
-    </div>
-  </div>
-  <div class="mb-3 row">
-    <div class="col-sm-10">
-    <button type="submit" class="btn btn-primary mb-3">Anmelden</button>
-    <button type="submit" class="btn btn-primary mb-3"  to="/kennwort-vergessen">Kennwort vergessen</button>
-    </div>
-  </div>
-  </form>
-     </div>
-     -->
 </div>
 </template>
 <script lang="ts" setup>
-import { useForm } from 'vee-validate';
+import { Form, Field, ErrorMessage} from 'vee-validate';
 import { useAuthStore } from "../stores/auth";
 import { ref, onMounted } from 'vue'
 import { genResponseError } from "../utils/errorMessage";
-
-const pageError = ref("")
-const store = useAuthStore()
-const { handleSubmit, setFieldValue, defineField, errors, setErrors } = useForm()
 import type { UserLoginForm } from "../models/user.model";
+import router from "../router";
 
+const pageError = ref()
+const store = useAuthStore()
+
+
+const formValues = ref()
+
+const fields = [
+    {
+        label: "Email",
+        name: "email",
+        type: "text"
+    },
+    {
+        label: "Password",
+        name: "password",
+        type: "password"
+    }
+]
+
+
+
+function onSubmit(values: UserLoginForm, actions: any) {
+    store.login(values).then(
+    (token) => {
+        //loading.value = false
+        router.push("/");
+        console.log(token)
+        return;
+    },
+    (err: any) => {
+        const errors = genResponseError(err);
+        if (errors?.fields) {
+            actions.setErrors(errors.fields);
+        }
+
+        if (errors?.message) {
+            pageError.value = errors.message
+        }
+
+    }
+    );
+};
+  // Submit the values...
+  // set single field value
+  //actions.setFieldValue('email', 'ummm@example.com');
+  // set multiple values
+  //actions.setValues({
+  //  email: 'ummm@example.com',
+  //  password: 'P@$$w0Rd',
+  //});
+
+/*
+import { useForm } from 'vee-validate';
+
+const { handleSubmit, defineField, errors, setErrors } = useForm()
 const [email,emailProps] = defineField('email');
 const [password,passwordProps] = defineField('password');
 
@@ -74,14 +112,17 @@ const [password,passwordProps] = defineField('password');
 //setFieldValue('password', 'test');
 
 
-const onSubmit = handleSubmit(async values => {
+*/
+
+/*a
+ubmit = handleSubmit(async values => {
     console.log(values)
   // Send data to the API
   const loginForm  = values as UserLoginForm;
       console.log("errors", errors)
        setErrors({
-        email: null,
-        password: null,
+        email: "",
+        password: "",
        });
        pageError.value = "";
       store.login(loginForm).then(
@@ -94,46 +135,28 @@ const onSubmit = handleSubmit(async values => {
         },
         (err: any) => {
             const errors = genResponseError(err);
-            if (errors.fields) {
+            if (errors?.fields) {
                   setErrors(errors.fields);
             }
 
-            if (errors.message) {
+            if (errors?.message) {
                 pageError.value = errors.message
             }
             console.log(errors)
-            /*
-            loading.value = false
-            formError.value = genResponseError(err);
-            if (formError.value?.message) {
-                dialog.value?.alert(formError.value?.message);
-                return;
-            }
-            dialog.value?.alert("Das Formular ist fehlerhaft!");
-            */
+
         }
     );
-    /*
-  const response = await client.post('/users/', values);
-  // all good
-  if (!response.errors) {
-    return;
-  }
-  // set single field error
-  if (response.errors.email) {
-    setFieldError('email', response.errors.email);
-  }
-  // set multiple errors, assuming the keys are the names of the fields
-  // and the key's value is the error message
-  setErrors(response.errors);
-  */
-});
 
+});
+*/
 
 onMounted(() => {
     //setFieldValue('password', 'test');
+    formValues.value = {
+        "email": "dev@bluffy.de",
+        "password": "mgr"
+    }
 
-    console.log(email)
     //console.log(email)
 
     /*

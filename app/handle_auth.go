@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"goapp/config"
 	"goapp/models"
@@ -64,17 +65,22 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie := http.Cookie{
-		Name:     "jwt",
-		Value:    token.AccessToken,
-		Path:     "/",
-		MaxAge:   3600,
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
+		Name: "jwt",
+		Path: "/",
+		//Domain: "localhost",
+
+		//MaxAge:   3600,
+		//HttpOnly: false,
+		//Secure:   false,
+		Expires: time.Now().AddDate(1, 0, 0),
+		//SameSite: http.SameSiteNoneMode,
 	}
+
+	cookie.Value = token.AccessToken
 
 	http.SetCookie(w, &cookie)
 	//dtos := token.ToDto(user)
+
 	if err := json.NewEncoder(w).Encode(token); err != nil {
 		log.Warn(err)
 		app.printError(w, http.StatusInternalServerError, 102, err, "")
