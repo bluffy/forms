@@ -24,7 +24,7 @@ config.yaml
 gin-bin
 tmp/*
 docker/dev/.env
-docker/dev/docker-compose.example.yaml
+docker/dev/docker-compose.yaml
 .main-air
 /app/client
 config.dev.yaml

@@ -9,3 +9,4 @@ cp -f ${PWD}/docker/dev/docker-compose.example.yaml  ${PWD}/docker/dev/docker-co
 
 echo "copy ./config.dev.example.yaml to config.dev.yaml"
 cp -f ${PWD}/config.dev.example.yaml ${PWD}/config.dev.yaml
+
