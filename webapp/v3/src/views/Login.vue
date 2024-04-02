@@ -17,7 +17,7 @@
     </div>
 
     <div  v-if="formValues">
-    <Form  v-slot="{ values }" @submit="onSubmit"  :initial-values="formValues">
+    <Form  @submit="onSubmit"  :initial-values="formValues">
         <div class="mb-3 row">
             <div class="col-12" v-if="pageError">
                 <div class="alert alert-danger" role="alert">
@@ -71,8 +71,9 @@ const fields = [
 
 
 
-function onSubmit(values: UserLoginForm, actions: any) {
-    store.login(values).then(
+function onSubmit(values: any, actions: any) {
+    const loginForm  = values as UserLoginForm;
+    store.login(loginForm).then(
     (token) => {
         //loading.value = false
         router.push("/");

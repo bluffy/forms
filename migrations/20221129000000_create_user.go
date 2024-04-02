@@ -26,7 +26,7 @@ func Up_20221129000000(txn *sql.Tx) error {
 		email = envAdminEmail
 	}
 	if envAdminPassword != "" {
-		password = envAdminEmail
+		password = envAdminPassword
 	}
 
 	password, err := tools.HashPassword(password)
@@ -34,7 +34,7 @@ func Up_20221129000000(txn *sql.Tx) error {
 		return err
 	}
 
-	sql := ""
+	sql := "missing dialect"
 	switch dbType := config.Conf.Database.Type; dbType {
 	case "mysql":
 		sql = `
@@ -70,7 +70,7 @@ func Up_20221129000000(txn *sql.Tx) error {
 		return err
 	}
 
-	sql = ""
+	sql = "missing dialect"
 	switch dbType := config.Conf.Database.Type; dbType {
 	case "mysql":
 		sql = `
