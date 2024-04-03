@@ -10,6 +10,7 @@ import (
 	"goapp/app/middleware"
 	"goapp/config"
 
+	"gitea.com/go-chi/session"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 
@@ -78,6 +79,7 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 	*/
 
 	r := chi.NewRouter()
+	r.Use(session.Sessioner())
 	r.Use(middleware.Logger("", nil))
 	r.Use(cors.Handler(cors.Options{
 		//AllowedOrigins:   []string{"*"},
@@ -123,6 +125,20 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 	fileServer(r, "/pdf", http.FS(html2pdfFS))
 	//fileServerEmbed(r, "/public", publicFS)
 	r.Get("/home", a.PageHome)
+
+	/*
+		r.Get("/test", func(sess session.Store) string {
+			sess.Set("session", "session middleware")
+			return sess.Get("session").(string)
+		})
+		r.Get("/test1", func(w http.ResponseWriter, r *http.Request, f *session.Flash) string {
+			f.Success("yes!!!")
+			f.Error("opps...")
+			f.Info("aha?!")
+			f.Warning("Just be careful.")
+			w.HTML(200, "signup")
+		})
+	*/
 
 	r.Route("/api/v1", func(r chi.Router) {
 

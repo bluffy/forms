@@ -92,6 +92,14 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 		}
 	*/
 
+	/*
+		var sess session.Store
+
+		sess.Set("session", "session middleware")
+	*/
+
+	//var Session session.Store
+
 	sessionCookie := http.Cookie{
 		Name:     "session",
 		Path:     "/",
