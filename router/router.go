@@ -80,13 +80,16 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger("", nil))
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"*"},
+		//AllowedOrigins:   []string{"*"},
+		//AllowedOrigins:   []string{"http://localhost*", "http://127.0.0.1*", "http://127.0.0.1*", "http://128.140.68.242"},
+		AllowedOrigins:   config.Conf.Server.Cors.AllowedOrigins,
+		AllowCredentials: config.Conf.Server.Cors.AllowCredentials,
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-Requested-With"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: false,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
+		AllowedMethods: config.Conf.Server.Cors.AllowedMethods,
+		AllowedHeaders: config.Conf.Server.Cors.AllowedHeaders,
+		ExposedHeaders: config.Conf.Server.Cors.ExposedHeaders,
+
+		MaxAge: config.Conf.Server.Cors.MaxAge, // Maximum value not ignored by any of major browsers
 	}))
 
 	r.HandleFunc("/healthz", a.HanlderHealth)

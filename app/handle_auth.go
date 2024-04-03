@@ -95,10 +95,12 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 	sessionCookie := http.Cookie{
 		Name:     "session",
 		Path:     "/",
-		HttpOnly: true,
+		HttpOnly: false,
 		Expires:  time.Now().Add(time.Second * time.Duration(config.Conf.Server.TokenLifeTime)),
+		//SameSite: http.SameSiteLaxMode,
 		SameSite: http.SameSiteLaxMode,
 		Value:    sessionEnc,
+		//Secure:   true,
 	}
 	http.SetCookie(w, &sessionCookie)
 
