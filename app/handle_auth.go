@@ -3,14 +3,13 @@ package app
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
-	"goapp/config"
 	"goapp/models"
 	"goapp/repository"
 	"goapp/service"
 	"goapp/util/tools"
 
+	"gitea.com/go-chi/session"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -40,104 +39,15 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session := &models.Session{
-		UserID: user.ID,
-	}
+	sess := session.GetSession(r)
+	sess.Set("user_id", user.ID)
 
-	session, err = repository.CreateSession(app.db, session)
+	_, err = session.RegenerateSession(w, r)
 	if err != nil {
-		app.printError(w, http.StatusInternalServerError, 104, err, "")
+		app.printError(w, http.StatusUnprocessableEntity, 200, err, "")
 		return
 	}
-	sessionEnc, err := tools.EncryptBase64(session.ID, config.Conf.EncryptKey)
-	if err != nil {
-		app.printError(w, http.StatusInternalServerError, 104, err, "")
-		return
-	}
-
-	jwt := service.Jwt{
-		TokenLifeTime:        config.Conf.Server.TokenLifeTime,
-		TokenRefreshLifeTime: config.Conf.Server.TokenRefreshLifeTime,
-		TokenRefreshAllowd:   config.Conf.Server.TokenRefreshAllowed,
-		TokenKey:             config.Conf.Server.TokenKey,
-	}
-
-	userDto := user.ToDto()
-	token, err := jwt.CreateToken(*userDto, session.ID)
-	if err != nil {
-		app.printError(w, http.StatusInternalServerError, 202, err, "")
-		return
-	}
-	/*
-
-		at := http.Cookie{
-			Name: "at",
-			Path: "/",
-			//Domain: "localhost",
-			//MaxAge:   3600,
-			HttpOnly: true,
-			Expires:  time.Now().AddDate(1, 0, 0),
-			SameSite: http.SameSiteLaxMode,
-			Value: token.AccessToken,
-		}
-		rt := http.Cookie{
-			Name: "at",
-			Path: "/",
-			//Domain: "localhost",
-			//MaxAge:   3600,
-			HttpOnly: true,
-			Expires:  time.Now().AddDate(1, 0, 0),
-			SameSite: http.SameSiteLaxMode,
-			Value: token.AccessToken,
-		}
-	*/
-
-	/*
-		var sess session.Store
-
-		sess.Set("session", "session middleware")
-	*/
-
-	//var Session session.Store
-
-	sessionCookie := http.Cookie{
-		Name:     "session",
-		Path:     "/",
-		HttpOnly: false,
-		Expires:  time.Now().Add(time.Second * time.Duration(config.Conf.Server.TokenLifeTime)),
-		//SameSite: http.SameSiteLaxMode,
-		SameSite: http.SameSiteLaxMode,
-		Value:    sessionEnc,
-		//Secure:   true,
-	}
-	http.SetCookie(w, &sessionCookie)
-
-	at := http.Cookie{
-		Name:     "at",
-		Path:     "/",
-		HttpOnly: true,
-		Expires:  time.Now().Add(time.Second * time.Duration(config.Conf.Server.TokenLifeTime)),
-		SameSite: http.SameSiteLaxMode,
-		Value:    token.AccessToken,
-	}
-	http.SetCookie(w, &at)
-
-	if config.Conf.Server.TokenRefreshAllowed {
-
-		rt := http.Cookie{
-			Name:     "rt",
-			Path:     "/",
-			HttpOnly: true,
-			Expires:  time.Now().Add(time.Second * time.Duration(config.Conf.Server.TokenRefreshLifeTime)),
-			SameSite: http.SameSiteLaxMode,
-			Value:    token.RefreshToken,
-		}
-		http.SetCookie(w, &rt)
-
-	}
-	//dtos := token.ToDto(user)
-
-	if err := json.NewEncoder(w).Encode(token); err != nil {
+	if err := json.NewEncoder(w).Encode(user.ToDto()); err != nil {
 		log.Warn(err)
 		app.printError(w, http.StatusInternalServerError, 102, err, "")
 	}

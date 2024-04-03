@@ -5,16 +5,17 @@ import (
 	"goapp/util/tools"
 	"log"
 	"net/http"
-
-	"gitea.com/go-chi/session"
 )
 
 func (app *App) PageHome(res http.ResponseWriter, req *http.Request) {
 	//app.printError(res, http.StatusInternalServerError, 200, nil, "")
 
-	mysess := session.GetSession(req)
+	//mysess := session.GetSession(req)
 
-	log.Printf("%v", mysess)
+	//log.Printf("%+v\n", mysess.Get("name"))
+	//	func (m *Manager) Start(resp, req *http.Request) (RawStore, error)
+
+	//log.Printf("%+v\n", mysess.)
 
 	sess, err := req.Cookie("session")
 	if err != nil {

@@ -6,12 +6,12 @@ import { registerPlugins } from './plugins'
 //import './style.css'
 import './style/App.scss'
 import 'bootstrap/dist/js/bootstrap.js'
-import setupInterceptors from "./services/setupInterceptors";
+//import setupInterceptors from "./services/setupInterceptors";
 
 
 const app = createApp(App)
 
-setupInterceptors();
+//setupInterceptors();
 
 registerPlugins(app)
 

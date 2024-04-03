@@ -79,7 +79,13 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 	*/
 
 	r := chi.NewRouter()
-	r.Use(session.Sessioner())
+	//r.Use(session.Sessioner())
+	r.Use(session.Sessioner(session.Options{
+		Provider:       "file",
+		ProviderConfig: "tmp/sessions",
+		CookieName:     "session",
+		IDLength:       64,
+	}))
 	r.Use(middleware.Logger("", nil))
 	r.Use(cors.Handler(cors.Options{
 		//AllowedOrigins:   []string{"*"},
@@ -173,7 +179,8 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 			//		r.Handle("/{user:user\\/?}", auth.AuthMiddleware(userDelete)).Methods("DELETE")
 			//r.Post("/auth/refresh", a.RefreshLoginToken)
 			r.Group(func(r chi.Router) {
-				r.Use(middleware.JWTAuth(a))
+				//r.Use(middleware.JWTAuth(a))
+				//r.Use(middleware.SessionCheck(a))
 				r.Get("/intern", a.HandlerIntern)
 				//	r.Get("/user", a.HandlerSessionCheck)
 				//	r.Get("/user", a.HandlerSessionCheck)
