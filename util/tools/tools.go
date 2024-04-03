@@ -87,6 +87,15 @@ func Encrypt(plaintext []byte, key []byte, iv string) (ciphertext []byte, err er
 	return gcm.Seal(nonce, nonce, plaintext, nil), nil
 }
 
+func EncryptBase64(plaintext string, key string) (ciphertext string, err error) {
+	text, err := Encrypt([]byte(plaintext), []byte(key), "")
+	if err != nil {
+		return "", err
+	}
+
+	return base64.StdEncoding.EncodeToString(text), nil
+}
+
 // Decrypt decrypts data using 256-bit AES-GCM.  This both hides the content of
 // the data and provides a check that it hasn't been altered. Expects input
 // form nonce|ciphertext|tag where '|' indicates concatenation.
@@ -111,6 +120,21 @@ func Decrypt(ciphertext []byte, key []byte) (plaintext []byte, err error) {
 		ciphertext[12:],
 		nil,
 	)
+}
+
+func DecryptBase64(ciphertext string, key string) (plaintext string, err error) {
+	sDec, _ := base64.StdEncoding.DecodeString(string(ciphertext))
+	if err != nil {
+		return "", err
+	}
+
+	text, err := Decrypt(sDec, []byte(key))
+	if err != nil {
+		return "", err
+	}
+
+	return string(text), nil
+
 }
 
 func HashPassword(password string) (string, error) {

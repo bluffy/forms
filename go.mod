@@ -7,6 +7,7 @@ toolchain go1.22.1
 require (
 	dario.cat/mergo v1.0.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
+	gitea.com/go-chi/session v0.0.0-20240316035857-16768d98ec96 // indirect
 	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/bep/godartsass v1.2.0 // indirect
@@ -59,6 +60,7 @@ require (
 	github.com/swaggo/http-swagger v1.3.4 // indirect
 	github.com/swaggo/swag v1.16.3 // indirect
 	github.com/tdewolff/parse/v2 v2.7.12 // indirect
+	github.com/unknwon/com v1.0.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/net v0.22.0 // indirect

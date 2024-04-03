@@ -49,6 +49,11 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 		app.printError(w, http.StatusInternalServerError, 104, err, "")
 		return
 	}
+	sessionEnc, err := tools.EncryptBase64(session.ID, config.Conf.EncryptKey)
+	if err != nil {
+		app.printError(w, http.StatusInternalServerError, 104, err, "")
+		return
+	}
 
 	jwt := service.Jwt{
 		TokenLifeTime:        config.Conf.Server.TokenLifeTime,
@@ -63,22 +68,63 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 		app.printError(w, http.StatusInternalServerError, 202, err, "")
 		return
 	}
+	/*
 
-	cookie := http.Cookie{
-		Name: "jwt",
-		Path: "/",
-		//Domain: "localhost",
+		at := http.Cookie{
+			Name: "at",
+			Path: "/",
+			//Domain: "localhost",
+			//MaxAge:   3600,
+			HttpOnly: true,
+			Expires:  time.Now().AddDate(1, 0, 0),
+			SameSite: http.SameSiteLaxMode,
+			Value: token.AccessToken,
+		}
+		rt := http.Cookie{
+			Name: "at",
+			Path: "/",
+			//Domain: "localhost",
+			//MaxAge:   3600,
+			HttpOnly: true,
+			Expires:  time.Now().AddDate(1, 0, 0),
+			SameSite: http.SameSiteLaxMode,
+			Value: token.AccessToken,
+		}
+	*/
 
-		//MaxAge:   3600,
-		//HttpOnly: false,
-		//Secure:   false,
-		Expires: time.Now().AddDate(1, 0, 0),
-		//SameSite: http.SameSiteNoneMode,
+	sessionCookie := http.Cookie{
+		Name:     "session",
+		Path:     "/",
+		HttpOnly: true,
+		Expires:  time.Now().Add(time.Second * time.Duration(config.Conf.Server.TokenLifeTime)),
+		SameSite: http.SameSiteLaxMode,
+		Value:    sessionEnc,
 	}
+	http.SetCookie(w, &sessionCookie)
 
-	cookie.Value = token.AccessToken
+	at := http.Cookie{
+		Name:     "at",
+		Path:     "/",
+		HttpOnly: true,
+		Expires:  time.Now().Add(time.Second * time.Duration(config.Conf.Server.TokenLifeTime)),
+		SameSite: http.SameSiteLaxMode,
+		Value:    token.AccessToken,
+	}
+	http.SetCookie(w, &at)
 
-	http.SetCookie(w, &cookie)
+	if config.Conf.Server.TokenRefreshAllowed {
+
+		rt := http.Cookie{
+			Name:     "rt",
+			Path:     "/",
+			HttpOnly: true,
+			Expires:  time.Now().Add(time.Second * time.Duration(config.Conf.Server.TokenRefreshLifeTime)),
+			SameSite: http.SameSiteLaxMode,
+			Value:    token.RefreshToken,
+		}
+		http.SetCookie(w, &rt)
+
+	}
 	//dtos := token.ToDto(user)
 
 	if err := json.NewEncoder(w).Encode(token); err != nil {

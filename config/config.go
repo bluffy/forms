@@ -46,6 +46,7 @@ type config struct {
 	Language       string `default:"en"`
 	LogLanguage    string `yaml:"log_language" default:"en"`
 	UseEmbedClient bool   `yaml:"use_embed_client" default:"true"`
+	EncryptKey     string `yaml:"encryptKey" default:"6GbE8Qf2rkbYm9EecnxfVnBzXp8ZvWo6h3FDKxA88qv46U8ueRY4RJcbD7oMjCAzQLT"`
 
 	Server struct {
 		Port                 int           `yaml:"port" default:"4090"`

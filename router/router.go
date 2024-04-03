@@ -119,6 +119,7 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 	fileServer(r, "/static", http.FS(staticFS))
 	fileServer(r, "/pdf", http.FS(html2pdfFS))
 	//fileServerEmbed(r, "/public", publicFS)
+	r.Get("/home", a.PageHome)
 
 	r.Route("/api/v1", func(r chi.Router) {
 

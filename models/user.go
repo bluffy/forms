@@ -23,8 +23,9 @@ type UserDto struct {
 }
 
 type UserLoginForm struct {
-	Email    string `json:"email" form:"required,max=255,email"`
-	Password string `json:"password"  form:"required"`
+	Email     string `json:"email" form:"required,max=255,email"`
+	Password  string `json:"password"  form:"required"`
+	UseCookie bool   `json:"use_cookie,omitempty"`
 }
 
 type UserRegisterEmailFormDto struct {
