@@ -130,7 +130,7 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 	fileServer(r, "/static", http.FS(staticFS))
 	fileServer(r, "/pdf", http.FS(html2pdfFS))
 	//fileServerEmbed(r, "/public", publicFS)
-	r.Get("/home", a.PageHome)
+	//r.Get("/home", a.PageHome)
 
 	/*
 		r.Get("/test", func(sess session.Store) string {
@@ -146,14 +146,18 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 		})
 	*/
 
-	r.Route("/api/v1", func(r chi.Router) {
+	r.Route("/page/v1", func(r chi.Router) {
 
 		//r.Get("/oidc/{name}", a.HandlerOpenIDConnect)
 
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.ContentTypeJson)
+			r.Use(middleware.SessionCheck(a))
+			r.Get("/", a.PageIndex)
+		})
 
-			r.Get("/test", a.HandlerIndex)
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.ContentTypeJson)
 
 			r.Post("/login", a.HandlerLogin)
 
@@ -190,18 +194,19 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 
 		//sicherheit muss noch eingebuat werden
 		//r.Get("/intern", a.HanldeIntern)
+		/*
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.JWTAuth(a))
+				r.Use(middleware.ContentTypeJson)
+				//, auth.AuthMiddleware(FileGetHtmlPdfAuth)).Methods("GET")
 
-		r.Group(func(r chi.Router) {
-			r.Use(middleware.JWTAuth(a))
-			r.Use(middleware.ContentTypeJson)
-			//, auth.AuthMiddleware(FileGetHtmlPdfAuth)).Methods("GET")
+			})
 
-		})
-
-		r.Group(func(r chi.Router) {
-			r.Use(middleware.JWTAuth(a))
-			r.Use(middleware.ContentTypeJson)
-		})
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.JWTAuth(a))
+				r.Use(middleware.ContentTypeJson)
+			})
+		*/
 	})
 	/*
 		r.Get("/", a.PageHome)

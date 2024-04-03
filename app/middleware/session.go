@@ -13,7 +13,6 @@ import (
 type UserIDKey struct{}
 
 func SessionCheck(a *app.App) func(next http.Handler) http.Handler {
-
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 
@@ -23,7 +22,7 @@ func SessionCheck(a *app.App) func(next http.Handler) http.Handler {
 
 			if user_id == nil {
 				w.WriteHeader(http.StatusUnauthorized)
-				fmt.Fprintf(w, `{"error": {"message": "%v"}}`, "session expired")
+				fmt.Fprintf(w, `{"error": {"message": "%v"}}`, "session not exists or expired")
 				return
 			}
 

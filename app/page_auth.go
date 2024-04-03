@@ -19,10 +19,11 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param data body models.UserLoginForm  true "Email & Password"
-// @Success      200 {object} models.Token
+// @Success      204 {object} models.Token
+// @Failure      401 {object} models.AppError
 // @Failure      422 {object} models.AppError
-// @Failure      500 {object} models.AppError
-// @Router       /api/v1/login [post]
+// @Failure      500 {object} models.AppError "Response JSON"
+// @Router       /page/v1/login [post]
 func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 	form := &models.UserLoginForm{}
 	if app.checkForm(form, w, r) {
@@ -44,14 +45,12 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	_, err = session.RegenerateSession(w, r)
 	if err != nil {
-		app.printError(w, http.StatusUnprocessableEntity, 200, err, "")
+		app.printError(w, http.StatusUnprocessableEntity, 202, err, "")
 		return
 	}
-	if err := json.NewEncoder(w).Encode(user.ToDto()); err != nil {
-		log.Warn(err)
-		app.printError(w, http.StatusInternalServerError, 102, err, "")
-	}
 
+	w.WriteHeader(http.StatusNoContent)
+	w.Write([]byte(""))
 }
 
 func (app *App) RefreshLoginToken(w http.ResponseWriter, r *http.Request) {

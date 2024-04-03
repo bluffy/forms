@@ -1,16 +1,17 @@
 <template>
 
-<div class="modal" v-if="dialog">
+<div  class="modal fade"  tabindex="-1" aria-labelledby=""
+    aria-hidden="true"  ref="modalEle" >
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" v-if="options.title">{{ options.title }}</h5>
+        <h5 class="modal-title" v-if="options && options.title">{{ options.title }}</h5>
         <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
       </div>
       <div class="modal-body" v-html="message" />
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary" @click="agree">{{ options.ok }}</button>
-        <button type="button" class="btn btn-secondary"  @click="disagree" v-if="isConfirm"> {{ options.cancle }}</button>
+        <button v-if="options" type="button" class="btn btn-primary" @click="agree">{{ options.ok }}</button>
+        <button v-if="options && isConfirm" type="button" class="btn btn-secondary"  @click="disagree"> {{ options.cancle }}</button>
       </div>
     </div>
   </div>
@@ -20,7 +21,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted} from 'vue'
+import { Modal } from "bootstrap";
+
+//import { Modal } from "bootstrap";
+
+let thisModalObj = null;
+let modalEle = ref(null);
 
 
 const dialog = ref(false)
@@ -32,14 +39,20 @@ var resolve = (v: boolean) => {console.log(v)}
 
 function disagree() {
   dialog.value = false;
+  thisModalObj.hide();
   resolve(false)
 }
 function agree() {
   resolve(true)
   dialog.value = false;
+  thisModalObj.hide();
 }
 
 function alert(pMessage: string, params: any) {
+  console.log("alert")
+
+
+
   isConfirm.value = false
   dialog.value = true
   message.value = ""
@@ -50,9 +63,12 @@ function alert(pMessage: string, params: any) {
 
   message.value = pMessage
   options.value = Object.assign(options.value,params)
+
+  thisModalObj.show();
   return new Promise((res) => {
     resolve = res
   })
+
 }
 function confirm(pMessage: string, params: any) {
   isConfirm.value = true
@@ -70,6 +86,11 @@ function confirm(pMessage: string, params: any) {
     resolve = res
   })
 }
+
+onMounted(() => {
+  thisModalObj = new Modal(modalEle.value, {backdrop: "static"});
+  console.log(thisModalObj)
+});
 
 defineExpose({
   alert,

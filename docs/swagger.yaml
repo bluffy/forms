@@ -27,13 +27,15 @@ definitions:
         type: string
       password:
         type: string
+      use_cookie:
+        type: boolean
     type: object
 info:
   contact:
-    email: mario@bluffy.de
+    email: github@bluffy.de
     name: API Support
   description: app server
-  title: bluffy-forms app server
+  title: app server
   version: "1.0"
 paths:
   /api/v1/:
@@ -64,7 +66,7 @@ paths:
       - Token: []
       tags:
       - public
-  /api/v1/login:
+  /page/v1/login:
     post:
       consumes:
       - application/json
@@ -79,16 +81,20 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "204":
+          description: No Content
           schema:
             $ref: '#/definitions/models.Token'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.AppError'
         "422":
           description: Unprocessable Entity
           schema:
             $ref: '#/definitions/models.AppError'
         "500":
-          description: Internal Server Error
+          description: Response JSON
           schema:
             $ref: '#/definitions/models.AppError'
       tags:
