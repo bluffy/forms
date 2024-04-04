@@ -47,7 +47,7 @@ const fields = [
         label: "Email",
         name: "email",
         type: "text",
-        placeholder: "max@mustermann.d"
+        placeholder: "max@mustermann.de"
     },
     {
         label: "Password",
