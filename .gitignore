@@ -26,7 +26,7 @@ tmp/*
 docker/dev/.env
 docker/dev/docker-compose.yaml
 .main-air
-
+/app/client
 config.dev.yaml
 /database*.db
 /database.db
