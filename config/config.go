@@ -15,30 +15,51 @@ import (
 var Conf *config
 
 /*
-func init() {
-	configFile := "config.yaml"
-	var opts ArgOptions
+	func init() {
+		configFile := "config.yaml"
+		var opts ArgOptions
 
-	log.Println("TEST")
-	_, err := flags.ParseArgs(&opts, os.Args)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	if opts.Config != "" {
-		configFile = opts.Config
-	}
+		log.Println("TEST")
+		_, err := flags.ParseArgs(&opts, os.Args)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+		if opts.Config != "" {
+			configFile = opts.Config
+		}
 
-	Conf, err := AppConfig(configFile)
+		Conf, err := AppConfig(configFile)
 
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	log.Info(Conf)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+		log.Info(Conf)
 
 }
 */
+type Database struct {
+	Type  string
+	Mysql struct {
+		Username string
+		Password string
+		Database string
+		Host     string
+		Port     string
+	}
+	Sqlite struct {
+		Path string `default:"database.db"`
+	}
+}
+type Cors struct {
+	AllowedOrigins   []string `yaml:"allowed_orgins" default:"[\"https://*\",\"http://*\"]"`
+	AllowCredentials bool     `yaml:"allowed_credential" default:"true"`
+	AllowedMethods   []string `yaml:"allowed_methods" default:"[\"GET\",\"POST\",\"PUT\",\"DELETE\",\"OPTIONS\",\"HEAD\"]"`
+	AllowedHeaders   []string `yaml:"allowed_headers" default:"[\"Accept\",\"Authorization\",\"Content-Type\",\"X-CSRF-Token\",\"X-Requested-With\"]"`
+	ExposedHeaders   []string `yaml:"exposed_headers" default:"[\"Link\",\"set-cookie\"]}"`
+	MaxAge           int      `yaml:"max_age" default:"300"`
+}
 
 type config struct {
 	Dev            bool
@@ -62,29 +83,10 @@ type config struct {
 		TokenLifeTime        int           `yaml:"token_life_time" default:"43200"`
 		TokenRefreshLifeTime int           `yaml:"token_refreshLifeTime" default:"43200"`
 		TokenRefreshAllowed  bool          `yaml:"token_refreshAllowed" default:"true"`
-		Cors                 struct {
-			AllowedOrigins   []string `yaml:"allowed_orgins" default:"[\"https://*\",\"http://*\"]"`
-			AllowCredentials bool     `yaml:"allowed_credential" default:"true"`
-			AllowedMethods   []string `yaml:"allowed_methods" default:"[\"GET\",\"POST\",\"PUT\",\"DELETE\",\"OPTIONS\",\"HEAD\"]"`
-			AllowedHeaders   []string `yaml:"allowed_headers" default:"[\"Accept\",\"Authorization\",\"Content-Type\",\"X-CSRF-Token\",\"X-Requested-With\"]"`
-			ExposedHeaders   []string `yaml:"exposed_headers" default:"[\"Link\",\"set-cookie\"]}"`
-			MaxAge           int      `yaml:"max_age" default:"300"`
-		}
+		Cors                 Cors
 	}
 
-	Database struct {
-		Type  string
-		Mysql struct {
-			Username string
-			Password string
-			Database string
-			Host     string
-			Port     string
-		}
-		Sqlite struct {
-			Path string `default:"database.db"`
-		}
-	}
+	Database Database
 }
 
 func (conf *config) UnmarshalYAML(unmarshal func(interface{}) error) error {

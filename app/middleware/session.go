@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"goapp/app"
-
 	"gitea.com/go-chi/session"
 )
 
 type UserIDKey struct{}
 
-func SessionCheck(a *app.App) func(next http.Handler) http.Handler {
+func SessionCheck() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 

@@ -114,7 +114,7 @@ func (app *App) HandlerRgister(w http.ResponseWriter, r *http.Request) {
 	response.Message = app.GetLangText("page_register__message_success", "")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 
-		printError(app, w, http.StatusInternalServerError, appErrJsonCreationFailure, err)
+		app.printError(w, http.StatusInternalServerError, 102, err, "")
 	}
 
 }

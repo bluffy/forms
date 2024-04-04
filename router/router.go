@@ -163,7 +163,7 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 
 				r.Group(func(r chi.Router) {
 					r.Use(middleware.ContentTypeJson)
-					r.Use(middleware.SessionCheck(a))
+					r.Use(middleware.SessionCheck())
 					r.Get("/", a.PageIndex)
 				})
 

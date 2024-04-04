@@ -72,7 +72,6 @@ func ToErrResponse(err error, msg *string) *ErrResponse {
 		if msg != nil {
 			resp.Error.Message = *msg
 		}
-
 		for _, err := range fieldErrors {
 			switch err.Tag() {
 			case "required":

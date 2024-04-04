@@ -117,41 +117,6 @@ func (app *App) User() *models.UserDto {
 
 }
 */
-func printError(a *App, w http.ResponseWriter, status int, msg string, err error) {
-	if err != nil && config.Conf.Debug {
-		_, fn, line, _ := runtime.Caller(1)
-		log.WithFields(log.Fields{
-			"func": fn,
-			"line": fmt.Sprintf("%d", line),
-		}).Error(err)
-	} else {
-		if err != nil {
-			log.Warn(err)
-		}
-	}
-	if msg != "" {
-		log.Error(msg)
-	}
-
-	w.WriteHeader(status)
-	message := ""
-
-	if msg == "" {
-		message = appErr
-	} else {
-		message = msg
-	}
-	errorObj := val.ErrorMsg(message)
-	errorJson, err := json.Marshal(errorObj)
-	if err != nil {
-		log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, `{"error.message": "%v"}`, appErrCreationFailure)
-		return
-	}
-	w.Write(errorJson)
-
-}
 
 func (a *App) printError(w http.ResponseWriter, status int, code int, err error, lang string) {
 	if err != nil && config.Conf.Debug {
@@ -233,6 +198,40 @@ func (a *App) GetErrorByCode(code int, lang string) string {
 
 }
 
+func (a *App) getFormsErrors(code int, lang string) string {
+	var message = "Unbekannter Fehler"
+
+	var languageIdx = a.lang.Default
+
+	if lang != "" {
+		_, ok := a.lang.Region[lang]
+		if !ok {
+			languageIdx = lang
+		}
+	}
+
+	region, ok := a.lang.Region[languageIdx]
+
+	var errMsg = ""
+	if ok {
+		errMsg, ok = region.Error[code]
+		if ok {
+			message = errMsg
+		} else {
+			region, ok = a.lang.Region[a.lang.Default]
+			if ok {
+				errMsg, ok = region.Error[code]
+				if ok {
+					message = errMsg
+				}
+			}
+		}
+	}
+
+	return message
+
+}
+
 func (a *App) GetLangText(id string, lang string) string {
 	var message = id
 
@@ -274,7 +273,7 @@ func (a *App) printErrorByCode(w http.ResponseWriter, status int, code int, err 
 
 func (app *App) checkForm(form interface{}, w http.ResponseWriter, r *http.Request) (stop bool) {
 	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
-		printError(app, w, http.StatusUnprocessableEntity, appErrFormDecodingFailure, err)
+		app.printError(w, http.StatusUnprocessableEntity, 110, err, "")
 		return true
 	}
 
@@ -282,12 +281,12 @@ func (app *App) checkForm(form interface{}, w http.ResponseWriter, r *http.Reque
 		log.Warn(err)
 		resp := val.ToErrResponse(err, nil)
 		if resp == nil {
-			printError(app, w, http.StatusInternalServerError, appErrFormErrResponseFailure, err)
+			app.printError(w, http.StatusInternalServerError, 111, err, "")
 			return true
 		}
 		respBody, err := json.Marshal(resp)
 		if err != nil {
-			printError(app, w, http.StatusInternalServerError, appErrJsonCreationFailure, err)
+			app.printError(w, http.StatusInternalServerError, 112, err, "")
 			return true
 		}
 		w.WriteHeader(http.StatusUnprocessableEntity)
