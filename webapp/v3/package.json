@@ -24,6 +24,7 @@
     "sass": "^1.72.0",
     "typescript": "^5.2.2",
     "vite": "^5.2.0",
+    "vite-plugin-static-copy": "^1.0.2",
     "vue-tsc": "^2.0.6"
   }
 }
