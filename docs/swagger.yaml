@@ -57,7 +57,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: index
+      description: index test
       parameters:
       - description: Email & Password
         in: body

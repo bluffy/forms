@@ -20,7 +20,7 @@ const docTemplate = `{
     "paths": {
         "/bl-api/page/v1/": {
             "get": {
-                "description": "index",
+                "description": "index test",
                 "consumes": [
                     "application/json"
                 ],

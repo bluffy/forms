@@ -6,7 +6,7 @@ import (
 
 // HandlerLogin  godoc
 // @Tags         public
-// @Description  index
+// @Description  index test
 // @Accept       json
 // @Produce      json
 // @Param data body models.UserLoginForm  true "Email & Password"

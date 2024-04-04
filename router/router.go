@@ -149,7 +149,9 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 	*/
 
 	r.Route("/bl-api", func(r chi.Router) {
-
+		if config.Conf.Dev || config.Conf.ShowApiDoku {
+			r.Mount("/", httpSwagger.WrapHandler)
+		}
 		r.Route("/page", func(r chi.Router) {
 			r.Route("/v1", func(r chi.Router) {
 
@@ -237,9 +239,6 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 		r.Get("/", a.PageHome)
 	*/
 
-	if config.Conf.Dev || config.Conf.ShowApiDoku {
-		r.Mount("/test", httpSwagger.WrapHandler)
-	}
 	if config.Conf.UseEmbedClient {
 		r.Get("/*", a.HandleClient)
 	} else {
