@@ -2,14 +2,13 @@ import api from "./api";
 import TokenService from "./token.service";
 import type { EmailForm, PasswordForm, UserLoginForm } from "../models/user.model";
 import type { Token } from "../models/token.model";
+//const path_api = import.meta.env.VITE_APP_API_PATH
+const path_page = import.meta.env.VITE_APP_API_PATH_PAGE
 
 class AuthService {
   login(user: UserLoginForm) {
-    return api.post("/login", user).then((response) => {
-      const token = <Token>response.data
-      if (token.at) {
-        TokenService.setToken(token);
-      }
+    return api.post(path_page +"/login", user).then((response) => {
+      
 
       return response.data;
     });

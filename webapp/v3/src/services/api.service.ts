@@ -1,25 +1,24 @@
 import api from "./api";
 import { useAppStore } from "../stores/app";
+//const path_api = import.meta.env.VITE_APP_API_PATH
+const path_page = import.meta.env.VITE_APP_API_PATH_PAGE
 
-class ApiService {
+class PageService {
 
     get(slug: string, params?: any) {
 
         const appStore = useAppStore()
         appStore.startLoading()
-        if (!params) {
-          return api.get(slug).finally(() => {
-            appStore.endLoad()
-          });
-        }
-        if (slug != "/") {
-            slug = slug + "/"
-        }
-        return api.get(slug + "/", {
+        
+        return api.get(path_page + slug, {
           params: params
+        }).then((response) => {
+          return response.data;
         }).finally(() => {
           appStore.endLoad()
         });
+
+
     }
 
     query(params?: any) {
@@ -75,4 +74,4 @@ class ApiService {
 
 }
 
-export default new ApiService();
+export default new PageService();

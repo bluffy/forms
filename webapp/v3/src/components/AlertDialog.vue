@@ -20,7 +20,7 @@
 
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" name="AlertDialog">
 import { ref, onMounted} from 'vue'
 import { Modal } from "bootstrap";
 
@@ -32,7 +32,7 @@ let modalEle = ref(null);
 
 const dialog = ref(false)
 const message = ref("")
-const options = ref();
+const options = ref()
 const isConfirm = ref(false)
 
 var resolve = (v: boolean) => {console.log(v)}
@@ -92,9 +92,12 @@ onMounted(() => {
   console.log(thisModalObj)
 });
 
+
 defineExpose({
   alert,
   confirm,
 });
+
+
 
 </script>

@@ -1,6 +1,8 @@
 <template>
-    <p>Dashboard</p>
-    <AlertDialog ref="dialog"></AlertDialog>
+<div>
+      <p>Dashboard</p>
+      <AlertDialog ref="dialog"></AlertDialog>
+</div>
 </template>
   
 <script lang="ts" setup>
@@ -33,4 +35,3 @@ onMounted(() => {
 
 });
 </script>
-  ../services/api.service
