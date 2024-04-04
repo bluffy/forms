@@ -1,13 +1,17 @@
 text:
   welcome: "Welcome"
+  page_register__message_success: "register was successful, check your email please!"
+
 error:
   101: Uknown Error  
   102: Error on Server App # JSON Encode Error
   103: Error on Server App # JSON Decode Error
   104: Server Database Error # SQL Error
+  105: Server Error # Commen Server Error
   200: user & password not matched # Email not exists
   201: user & password not matched  
   202: unable to create session
   203: invalid token
   204: unable to create access token
+  210: user already registered
   

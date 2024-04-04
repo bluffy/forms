@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"context"
 	"database/sql"
 	"goapp/config"
 	"goapp/util/tools"
@@ -11,10 +12,10 @@ import (
 )
 
 func init() {
-	goose.AddMigration(Up_20221129000000, Down_20221129000000)
+	goose.AddMigrationContext(Up_20221129000000, Down_20221129000000)
 }
 
-func Up_20221129000000(txn *sql.Tx) error {
+func Up_20221129000000(ctx context.Context, txn *sql.Tx) error {
 	id := ksuid.New().String()
 	email := "dev@bluffy.de"
 	password := "mgr"
@@ -36,35 +37,26 @@ func Up_20221129000000(txn *sql.Tx) error {
 
 	sql := "missing dialect"
 	switch dbType := config.Conf.Database.Type; dbType {
-	case "mysql":
+	default:
 		sql = `
-		CREATE TABLE IF NOT EXISTS users
-		(
-			id             CHAR(27)     NOT NULL,
-			email          VARCHAR(255) NOT NULL,
-			password       VARCHAR(255) NOT NULL,
-			is_admin       TINYINT(1)   NULL,
-			created_at     TIMESTAMP    NOT NULL,
-			updated_at     TIMESTAMP    NULL,
-			deleted_at     TIMESTAMP    NULL,
-			PRIMARY KEY (ID)
-		);`
-	case "sqlite":
-		sql = `
-		CREATE TABLE IF NOT EXISTS users
-		(
-			id             CHAR(27)     NOT NULL,
-			email          VARCHAR(255) NOT NULL,
-			password       VARCHAR(255) NOT NULL,
-			is_admin       TINYINT(1)   NULL,
-			created_at     TIMESTAMP    NOT NULL,
-			updated_at     TIMESTAMP    NULL,
-			deleted_at     TIMESTAMP    NULL,
-			PRIMARY KEY (ID)
-		);`
+			CREATE TABLE IF NOT EXISTS users
+			(
+				id             CHAR(27)     NOT NULL,
+				email          VARCHAR(255) NOT NULL,
+				password       VARCHAR(100) NOT NULL,
+				is_admin       TINYINT(1)   NULL,
+				first_name	   VARCHAR2(30) NULL,
+				last_name	   VARCHAR2(30) NULL,
+				newsletter	   TINYINT(1)   NULL,
+				created_at     TIMESTAMP    NOT NULL,
+				updated_at     TIMESTAMP    NULL,
+				deleted_at     TIMESTAMP    NULL,
+				PRIMARY KEY (ID),
+				UNIQUE (email)
+			);`
 	}
 
-	_, err = txn.Exec(sql)
+	_, err = txn.ExecContext(ctx, sql)
 
 	if err != nil {
 		return err
@@ -84,12 +76,12 @@ func Up_20221129000000(txn *sql.Tx) error {
 		`
 	}
 
-	_, err = txn.Exec(sql)
+	_, err = txn.ExecContext(ctx, sql)
 	return err
 
 }
 
-func Down_20221129000000(txn *sql.Tx) error {
+func Down_20221129000000(ctx context.Context, txn *sql.Tx) error {
 	_, err := txn.Exec("DROP TABLE IF EXISTS users;")
 	return err
 }

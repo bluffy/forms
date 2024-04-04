@@ -76,21 +76,21 @@ func ToErrResponse(err error, msg *string) *ErrResponse {
 		for _, err := range fieldErrors {
 			switch err.Tag() {
 			case "required":
-				resp.Error.Fields[err.Field()] = fmt.Sprintf("%s is a required field", err.Field())
+				resp.Error.Fields[err.Field()] = fmt.Sprintf("is a required")
 			case "max":
-				resp.Error.Fields[err.Field()] = fmt.Sprintf("%s must be a maximum of %s in length", err.Field(), err.Param())
+				resp.Error.Fields[err.Field()] = fmt.Sprintf("must be a maximum of %s in length", err.Param())
 			case "min":
-				resp.Error.Fields[err.Field()] = fmt.Sprintf("%s must be a minimum of %s in length", err.Field(), err.Param())
+				resp.Error.Fields[err.Field()] = fmt.Sprintf("must be a minimum of %s in length", err.Param())
 			case "url":
-				resp.Error.Fields[err.Field()] = fmt.Sprintf("%s must be a valid URL", err.Field())
+				resp.Error.Fields[err.Field()] = fmt.Sprintf("must be a valid URL")
 			case "email":
-				resp.Error.Fields[err.Field()] = fmt.Sprintf("%s must be a valid email address", err.Field())
+				resp.Error.Fields[err.Field()] = fmt.Sprintf("must be a valid email address")
 			case "alpha_space":
-				resp.Error.Fields[err.Field()] = fmt.Sprintf("%s can only contain alphabetic and space characters", err.Field())
+				resp.Error.Fields[err.Field()] = fmt.Sprintf("can only contain alphabetic and space characters")
 			case "date":
-				resp.Error.Fields[err.Field()] = fmt.Sprintf("%s must be a valid date", err.Field())
+				resp.Error.Fields[err.Field()] = fmt.Sprintf("must be a valid date")
 			default:
-				resp.Error.Fields[err.Field()] = fmt.Sprintf("something wrong on %s; %s", err.Field(), err.Tag())
+				resp.Error.Fields[err.Field()] = fmt.Sprintf("something wrong; %s", err.Tag())
 			}
 		}
 		return &resp

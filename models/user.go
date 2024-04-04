@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"goapp/adapter/gorm"
+	"goapp/util/tools"
 )
 
 type Users []*User
@@ -11,8 +12,22 @@ type User struct {
 	gorm.ModelUID
 	Email              string
 	Password           string
+	Newsletter         bool
+	FirstName          string
+	LastName           string
 	IsAdmin            bool
 	NewPasswordRequest *time.Time
+}
+type RegisterUser struct {
+	gorm.ModelUID
+	Email      string
+	Password   string
+	Newsletter bool
+	FirstName  string
+	LastName   string
+}
+type UserRegisterResponse struct {
+	Message string `json:"message" `
 }
 
 type UserDtos []*UserDto
@@ -27,6 +42,41 @@ type UserLoginForm struct {
 	Password  string `json:"password"  form:"required"`
 	UseCookie bool   `json:"use_cookie,omitempty"`
 }
+type RegisterUserForm struct {
+	Email      string `json:"email" form:"required,max=255,email"`
+	FirstName  string `json:"first_name" form:"required,min=2,max=255"`
+	LastName   string `json:"last_name" form:"required,min=2,max=255"`
+	Newsletter bool   `json:"newsletter"`
+	TermsAgree bool   `json:"terms_agree" form:"required"`
+	Password   string `json:"password" form:"required,min=5,max=64"`
+}
+
+func (u User) ToDto() *UserDto {
+	return &UserDto{
+		ID:      u.ID,
+		Email:   u.Email,
+		IsAdmin: u.IsAdmin,
+	}
+}
+
+func (f *RegisterUserForm) ToModel() (*RegisterUser, error) {
+
+	hashedPassword, err := tools.HashPassword(f.Password)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &RegisterUser{
+		Email:      f.Email,
+		Password:   hashedPassword,
+		FirstName:  f.FirstName,
+		LastName:   f.LastName,
+		Newsletter: f.Newsletter,
+	}, nil
+}
+
+/*
 
 type UserRegisterEmailFormDto struct {
 	Email string `json:"email"`
@@ -58,14 +108,10 @@ func (u UserRegisterEmailForm) ToDto() *UserRegisterEmailFormDto {
 		Email: u.Email,
 	}
 }
-func (u User) ToDto() *UserDto {
-	return &UserDto{
-		ID:      u.ID,
-		Email:   u.Email,
-		IsAdmin: u.IsAdmin,
-	}
-}
 
+
+
+*/
 /*
 // An User Object
 type User struct {

@@ -7,13 +7,15 @@ import NotFound from '../views/NotFound.vue'
 
 const routes = [  
     {
+        name: "register",
+        path: "/register",
+        component: defineAsyncComponent(() => import('../views/Register.vue'))
+      },   
+      {
         name: "login",
         path: "/login",
-        meta: {
-          requiresAuth: false
-        },
         component: defineAsyncComponent(() => import('../views/Login.vue'))
-      },   
+      },        
       {
         name: "dashboard",
         path: "/",    

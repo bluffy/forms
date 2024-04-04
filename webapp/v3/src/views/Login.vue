@@ -27,6 +27,7 @@
 import { Form, Field, ErrorMessage } from 'vee-validate';
 import { ref, onMounted } from 'vue'
 import { genResponseError } from "../utils/errorMessage";
+import { getPropertyName } from "../utils/helper";
 import type { PageNoContent } from "../models/page.model";
 import router from "../router";
 import AlertDialog from "../components/AlertDialog.vue";
@@ -39,20 +40,8 @@ const dialog = ref()
 
 const route = useRoute();
 const formValues = ref(null as UserLoginForm);
+const fields =ref([]);
 
-const fields = [
-    {
-        label: "Email",
-        name: "email",
-        type: "text",
-        placeholder: "max@mustermann.de"
-    },
-    {
-        label: "Password",
-        name: "password",
-        type: "password"
-    }
-]
 
 function onSubmit(values: any, actions: any) {
     return ApiService.postPage("/login", values).then(
@@ -63,10 +52,10 @@ function onSubmit(values: any, actions: any) {
 
             }
             if (route.query.redirect) {
-                router.push(route.query.redirect.toString());
+                router.replace(route.query.redirect.toString());
                 return
             }
-            router.push("/");
+            router.replace("/");
             return;
 
         },
@@ -87,9 +76,27 @@ function onSubmit(values: any, actions: any) {
 
 onMounted(() => {
     formValues.value = {
-        "email": "",
-        "password": ""
+        email: "",
+        password: ""
     }
+
+  
+    fields.value = [
+    {
+        label: "Email",
+        name:  getPropertyName(formValues.value, a => a.email),
+        type: "text",
+        placeholder: "max@mustermann.de"
+    },
+    {
+        label: "Password",
+        name:   getPropertyName(formValues.value, a => a.password),
+        type: "password"
+    }
+]
+
+
+
 });
 
 

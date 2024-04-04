@@ -160,6 +160,7 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 			r.Use(middleware.ContentTypeJson)
 
 			r.Post("/login", a.HandlerLogin)
+			r.Post("/register", a.HandlerRgister)
 
 			//r.Post("/oidc/callback/{name}", a.HandlerOpenIDCallback)
 			/*

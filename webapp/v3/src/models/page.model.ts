@@ -6,3 +6,12 @@ export interface PageIndex {
 export interface PageNoContent {
     status: number
 }
+export interface PageRegister {
+    status: number
+    data: {
+        message?: string
+    }
+}
+
+
+

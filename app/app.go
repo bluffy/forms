@@ -181,10 +181,45 @@ func (a *App) GetErrorByCode(code int, lang string) string {
 		if ok {
 			message = errMsg
 		} else {
-			region, _ = a.lang.Region[a.lang.Default]
-			errMsg, ok = region.Error[code]
+			region, ok = a.lang.Region[a.lang.Default]
 			if ok {
-				message = errMsg
+				errMsg, ok = region.Error[code]
+				if ok {
+					message = errMsg
+				}
+			}
+		}
+	}
+
+	return message
+
+}
+
+func (a *App) GetLangText(id string, lang string) string {
+	var message = id
+
+	var languageIdx = a.lang.Default
+	if lang != "" {
+		_, ok := a.lang.Region[lang]
+		if !ok {
+			languageIdx = lang
+		}
+	}
+
+	region, ok := a.lang.Region[languageIdx]
+
+	var msg = ""
+	if ok {
+		msg, ok = region.Text[id]
+		if ok {
+			message = msg
+		} else {
+			region, ok = a.lang.Region[a.lang.Default]
+			if ok {
+				msg, ok = region.Text[id]
+				if ok {
+					message = msg
+				}
 			}
 		}
 	}
