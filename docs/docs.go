@@ -11,7 +11,7 @@ const docTemplate = `{
         "title": "{{.Title}}",
         "contact": {
             "name": "API Support",
-            "email": "mario@bluffy.de"
+            "email": "github@bluffy.de"
         },
         "version": "{{.Version}}"
     },
@@ -65,7 +65,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/login": {
+        "/page/v1/login": {
             "post": {
                 "description": "login",
                 "consumes": [
@@ -89,10 +89,16 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "204": {
+                        "description": "No Content",
                         "schema": {
                             "$ref": "#/definitions/models.Token"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.AppError"
                         }
                     },
                     "422": {
@@ -102,7 +108,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Response JSON",
                         "schema": {
                             "$ref": "#/definitions/models.AppError"
                         }
@@ -153,6 +159,9 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                },
+                "use_cookie": {
+                    "type": "boolean"
                 }
             }
         }
@@ -173,7 +182,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "/",
 	Schemes:          []string{"http", "https"},
-	Title:            "bluffy-forms app server",
+	Title:            "app server",
 	Description:      "app server",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

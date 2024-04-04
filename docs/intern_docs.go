@@ -11,7 +11,7 @@ const docTemplateintern = `{
         "title": "{{.Title}}",
         "contact": {
             "name": "API Support",
-            "email": "mario@bluffy.de"
+            "email": "github@bluffy.de"
         },
         "version": "{{.Version}}"
     },
@@ -34,7 +34,7 @@ var SwaggerInfointern = &swag.Spec{
 	Host:             "",
 	BasePath:         "/",
 	Schemes:          []string{"http", "https"},
-	Title:            "bluffy-forms app server",
+	Title:            "app server",
 	Description:      "app server",
 	InfoInstanceName: "intern",
 	SwaggerTemplate:  docTemplateintern,

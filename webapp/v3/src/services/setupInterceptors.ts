@@ -1,69 +1,34 @@
 import axiosInstance from "./api";
-import TokenService from "./token.service";
-import { useAuthStore } from "../stores/auth";
+import router from "../router";
+
 
 const setup = () => {
-  axiosInstance.interceptors.request.use(
-    (config: any) => {
-      const token = TokenService.getLocalAccessToken();
-      if (token) {
-        config.headers["Authorization"] = "BEARER " + token; // for Spring Boot back-end
-        //config.headers["x-access-token"] = token; // for Node.js Express back-end
-      }
-      return config;
-    },
-    (error: any) => {
-      return Promise.reject(error);
-    }
-  );
-
   axiosInstance.interceptors.response.use(
     (res: any) => {
+
       return res;
     },
     async (err: any) => {
-      
-      const originalConfig = err.config;
- 
-      if (originalConfig.url !== "/user" && err.response) {
-        // Access Token was expired
-
-        if (err.response.status === 401 && !originalConfig?._retry) {
-          originalConfig._retry = true;
-
-          try {
-
-            const rs = await axiosInstance.post("/login/refresh", {
-              rt: TokenService.getLocalRefreshToken(),
-            });
 
 
-            const { at, rt } = rs.data;
-   
-            const authStore = useAuthStore();
+      if (!(err.config.url == "/login" || err.config.url == "/signup")) {
+        console.log("FEHLER")
 
-            authStore.refreshToken(at, rt);
-            TokenService.updateLocalAccessToken(at, rt);
-
-
-            return axiosInstance(originalConfig);
-          } catch (_error: any) {
-            if (_error.response.status == 403) {
-              const authStore = useAuthStore();
-              authStore.cleanUp()
-              window.location.href = "/login";
-              //return Promise.reject(_error);
-              return Promise.reject();
-
-            }
-            return Promise.reject(_error);
-          }
+        if (err.response.status === 400 || err.response.status === 401) {
+         // window.location.href = "/login?redir=" + err.config.url;
+        
+//         router.push( { name: 'login', params: {redir: err.config.url, error: err }});
+         router.push( { name: 'login', query: { redirect: err.config.url }});
+        
+          return Promise.reject(err);
+        }else if  (err.response.status === 403){
+          window.location.href = "/permission_denied";
+          return Promise.reject(err);
         }
       }
-      
-   
-
       return Promise.reject(err);
+
+
     }
   );
 };

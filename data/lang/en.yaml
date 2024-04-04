@@ -7,7 +7,7 @@ error:
   104: Server Database Error # SQL Error
   200: user & password not matched # Email not exists
   201: user & password not matched  
-  202: unable to create access token
+  202: unable to create session
   203: invalid token
   204: unable to create access token
   

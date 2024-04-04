@@ -1,10 +1,10 @@
 basePath: /
 info:
   contact:
-    email: mario@bluffy.de
+    email: github@bluffy.de
     name: API Support
   description: app server
-  title: bluffy-forms app server
+  title: app server
   version: "1.0"
 paths: {}
 schemes:

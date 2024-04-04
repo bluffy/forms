@@ -80,7 +80,7 @@ func (app *App) User() *models.UserDto {
 	return app.user
 }
 
-func printError(app *App, w http.ResponseWriter, status int, msg string, err error) {
+func printError(a *App, w http.ResponseWriter, status int, msg string, err error) {
 	if err != nil && config.Conf.Debug {
 		_, fn, line, _ := runtime.Caller(1)
 		log.WithFields(log.Fields{

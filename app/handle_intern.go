@@ -2,11 +2,11 @@ package app
 
 import (
 	"encoding/json"
+	"goapp/repository"
 	"net/http"
 
+	"gitea.com/go-chi/session"
 	log "github.com/sirupsen/logrus"
-
-	"goapp/repository"
 )
 
 // HandleQueryGet godoc
@@ -19,19 +19,32 @@ import (
 // @Failure      401 {object} models.AppError
 func (app *App) HandlerIntern(res http.ResponseWriter, req *http.Request) {
 	//app.printError(res, http.StatusInternalServerError, 200, nil, "")
+	mysess := session.GetSession(req)
+	userId := mysess.Get("user_id")
 
-	log.Println("TEST")
-	//res.Header().Set("Content-Type", "text/plain; charset=utf-8")
-
-	user, err := repository.GetUserByEmail(app.db, "system@bluffy.de")
+	user, err := repository.ReadUser(app.db, userId.(string))
 	if err != nil {
-		printError(app, res, http.StatusInternalServerError, "user & password not matched", err)
+		app.printError(res, http.StatusUnprocessableEntity, 200, err, "")
 		return
 	}
 
-	if err := json.NewEncoder(res).Encode(user); err != nil {
+	if err := json.NewEncoder(res).Encode(user.ToDto()); err != nil {
 		log.Warn(err)
-		printError(app, res, http.StatusInternalServerError, appErrJsonCreationFailure, err)
+		app.printError(res, http.StatusInternalServerError, 102, err, "")
 	}
 
+	//	printError(app, res, http.StatusInternalServerError, "user & password not matched", err)
+
+	/*
+		user, err := repository.GetUserByEmail(app.db, "system@bluffy.de")
+		if err != nil {
+			printError(app, res, http.StatusInternalServerError, "user & password not matched", err)
+			return
+		}
+
+		if err := json.NewEncoder(res).Encode(user); err != nil {
+			log.Warn(err)
+			printError(app, res, http.StatusInternalServerError, appErrJsonCreationFailure, err)
+		}
+	*/
 }

@@ -38,17 +38,26 @@
             </div>
         </div>
     </Form>
+
 </div>
+<AlertDialog ref="dialog1"></AlertDialog>
 
 </div>
 </template>
 <script lang="ts" setup>
+
 import { Form, Field, ErrorMessage} from 'vee-validate';
 import { useAuthStore } from "../stores/auth";
 import { ref, onMounted } from 'vue'
 import { genResponseError } from "../utils/errorMessage";
 import type { UserLoginForm } from "../models/user.model";
 import router from "../router";
+import AlertDialog from "../components/AlertDialog.vue";
+
+import { useRoute } from 'vue-router'
+const dialog1 = ref()
+
+const route = useRoute();
 
 const pageError = ref()
 const store = useAuthStore()
@@ -76,19 +85,33 @@ function onSubmit(values: any, actions: any) {
     store.login(loginForm).then(
     (token) => {
         //loading.value = false
+        if (route.query.redirect) {
+            router.push(route.query.redirect.toString());
+            return            
+        }
         router.push("/");
         console.log(token)
         return;
     },
     (err: any) => {
+
+
+
         const errors = genResponseError(err);
         if (errors?.fields) {
             actions.setErrors(errors.fields);
         }
 
         if (errors?.message) {
+                dialog1.value.alert(errors.message);
+                return;
+            }
+
+            /*
+        if (errors?.message) {
             pageError.value = errors.message
         }
+        */
 
     }
     );
@@ -152,6 +175,10 @@ ubmit = handleSubmit(async values => {
 */
 
 onMounted(() => {
+    console.log(dialog1.value)
+    dialog1.value?.alert("test");
+    console.log(route.query)
+
     //setFieldValue('password', 'test');
     formValues.value = {
         "email": "dev@bluffy.de",

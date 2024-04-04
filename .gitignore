@@ -30,3 +30,4 @@ docker/dev/docker-compose.yaml
 config.dev.yaml
 /database*.db
 /database.db
+.DS_Store

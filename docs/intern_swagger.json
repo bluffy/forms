@@ -6,10 +6,10 @@
     "swagger": "2.0",
     "info": {
         "description": "app server",
-        "title": "bluffy-forms app server",
+        "title": "app server",
         "contact": {
             "name": "API Support",
-            "email": "mario@bluffy.de"
+            "email": "github@bluffy.de"
         },
         "version": "1.0"
     },

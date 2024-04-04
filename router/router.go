@@ -79,16 +79,25 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 	*/
 
 	r := chi.NewRouter()
-	r.Use(session.Sessioner())
+	//r.Use(session.Sessioner())
+	r.Use(session.Sessioner(session.Options{
+		Provider:       "file",
+		ProviderConfig: "tmp/sessions",
+		CookieName:     "session",
+		IDLength:       64,
+	}))
 	r.Use(middleware.Logger("", nil))
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"*"},
+		//AllowedOrigins:   []string{"*"},
+		//AllowedOrigins:   []string{"http://localhost*", "http://127.0.0.1*", "http://127.0.0.1*", "http://128.140.68.242"},
+		AllowedOrigins:   config.Conf.Server.Cors.AllowedOrigins,
+		AllowCredentials: config.Conf.Server.Cors.AllowCredentials,
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-Requested-With"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: false,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
+		AllowedMethods: config.Conf.Server.Cors.AllowedMethods,
+		AllowedHeaders: config.Conf.Server.Cors.AllowedHeaders,
+		ExposedHeaders: config.Conf.Server.Cors.ExposedHeaders,
+
+		MaxAge: config.Conf.Server.Cors.MaxAge, // Maximum value not ignored by any of major browsers
 	}))
 
 	r.HandleFunc("/healthz", a.HanlderHealth)
@@ -121,7 +130,7 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 	fileServer(r, "/static", http.FS(staticFS))
 	fileServer(r, "/pdf", http.FS(html2pdfFS))
 	//fileServerEmbed(r, "/public", publicFS)
-	r.Get("/home", a.PageHome)
+	//r.Get("/home", a.PageHome)
 
 	/*
 		r.Get("/test", func(sess session.Store) string {
@@ -137,14 +146,18 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 		})
 	*/
 
-	r.Route("/api/v1", func(r chi.Router) {
+	r.Route("/page/v1", func(r chi.Router) {
 
 		//r.Get("/oidc/{name}", a.HandlerOpenIDConnect)
 
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.ContentTypeJson)
+			r.Use(middleware.SessionCheck(a))
+			r.Get("/", a.PageIndex)
+		})
 
-			r.Get("/test", a.HandlerIndex)
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.ContentTypeJson)
 
 			r.Post("/login", a.HandlerLogin)
 
@@ -170,7 +183,8 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 			//		r.Handle("/{user:user\\/?}", auth.AuthMiddleware(userDelete)).Methods("DELETE")
 			//r.Post("/auth/refresh", a.RefreshLoginToken)
 			r.Group(func(r chi.Router) {
-				r.Use(middleware.JWTAuth(a))
+				//r.Use(middleware.JWTAuth(a))
+				//r.Use(middleware.SessionCheck(a))
 				r.Get("/intern", a.HandlerIntern)
 				//	r.Get("/user", a.HandlerSessionCheck)
 				//	r.Get("/user", a.HandlerSessionCheck)
@@ -180,18 +194,19 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 
 		//sicherheit muss noch eingebuat werden
 		//r.Get("/intern", a.HanldeIntern)
+		/*
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.JWTAuth(a))
+				r.Use(middleware.ContentTypeJson)
+				//, auth.AuthMiddleware(FileGetHtmlPdfAuth)).Methods("GET")
 
-		r.Group(func(r chi.Router) {
-			r.Use(middleware.JWTAuth(a))
-			r.Use(middleware.ContentTypeJson)
-			//, auth.AuthMiddleware(FileGetHtmlPdfAuth)).Methods("GET")
+			})
 
-		})
-
-		r.Group(func(r chi.Router) {
-			r.Use(middleware.JWTAuth(a))
-			r.Use(middleware.ContentTypeJson)
-		})
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.JWTAuth(a))
+				r.Use(middleware.ContentTypeJson)
+			})
+		*/
 	})
 	/*
 		r.Get("/", a.PageHome)
