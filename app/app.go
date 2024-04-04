@@ -80,41 +80,43 @@ func (app *App) User() *models.UserDto {
 	return app.user
 }
 
-func printError(a *App, w http.ResponseWriter, status int, msg string, err error) {
-	if err != nil && config.Conf.Debug {
-		_, fn, line, _ := runtime.Caller(1)
-		log.WithFields(log.Fields{
-			"func": fn,
-			"line": fmt.Sprintf("%d", line),
-		}).Error(err)
-	} else {
-		if err != nil {
-			log.Warn(err)
+/*
+	func printError(w http.ResponseWriter, status int, msg string, err error) {
+		if err != nil && config.Conf.Debug {
+			_, fn, line, _ := runtime.Caller(1)
+			log.WithFields(log.Fields{
+				"func": fn,
+				"line": fmt.Sprintf("%d", line),
+			}).Error(err)
+		} else {
+			if err != nil {
+				log.Warn(err)
+			}
 		}
-	}
-	if msg != "" {
-		log.Error(msg)
-	}
+		if msg != "" {
+			log.Error(msg)
+		}
 
-	w.WriteHeader(status)
-	message := ""
+		w.WriteHeader(status)
+		message := ""
 
-	if msg == "" {
-		message = appErr
-	} else {
-		message = msg
-	}
-	errorObj := val.ErrorMsg(message)
-	errorJson, err := json.Marshal(errorObj)
-	if err != nil {
-		log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, `{"error.message": "%v"}`, appErrCreationFailure)
-		return
-	}
-	w.Write(errorJson)
+		if msg == "" {
+			message = appErr
+		} else {
+			message = msg
+		}
+		errorObj := val.ErrorMsg(message)
+		errorJson, err := json.Marshal(errorObj)
+		if err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, `{"error.message": "%v"}`, appErrCreationFailure)
+			return
+		}
+		w.Write(errorJson)
 
 }
+*/
 func (a *App) printError(w http.ResponseWriter, status int, code int, err error, lang string) {
 	if err != nil && config.Conf.Debug {
 		_, fn, line, _ := runtime.Caller(1)

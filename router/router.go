@@ -132,6 +132,8 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 	//fileServerEmbed(r, "/public", publicFS)
 	//r.Get("/home", a.PageHome)
 
+	fileServer(r, "/pdf", http.FS(html2pdfFS))
+
 	/*
 		r.Get("/test", func(sess session.Store) string {
 			sess.Set("session", "session middleware")
@@ -146,22 +148,42 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 		})
 	*/
 
-	r.Route("/page/v1", func(r chi.Router) {
+	r.Route("/bl-api", func(r chi.Router) {
 
+		r.Route("/page", func(r chi.Router) {
+			r.Route("/v1", func(r chi.Router) {
+
+				r.Group(func(r chi.Router) {
+					r.Use(middleware.ContentTypeJson)
+					r.Post("/login", a.HandlerLogin)
+					r.Post("/register", a.HandlerRgister)
+				})
+
+				r.Group(func(r chi.Router) {
+					r.Use(middleware.ContentTypeJson)
+					r.Use(middleware.SessionCheck(a))
+					r.Get("/", a.PageIndex)
+				})
+
+			})
+
+		})
 		//r.Get("/oidc/{name}", a.HandlerOpenIDConnect)
 
+		/*
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.ContentTypeJson)
+				r.Use(middleware.SessionCheck(a))
+				r.Get("/", a.PageIndex)
+			})
+		*/
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.ContentTypeJson)
-			r.Use(middleware.SessionCheck(a))
-			r.Get("/", a.PageIndex)
-		})
+			/*
+				r.Use(middleware.ContentTypeJson)
 
-		r.Group(func(r chi.Router) {
-			r.Use(middleware.ContentTypeJson)
-
-			r.Post("/login", a.HandlerLogin)
-			r.Post("/register", a.HandlerRgister)
-
+				r.Post("/login", a.HandlerLogin)
+				r.Post("/register", a.HandlerRgister)
+			*/
 			//r.Post("/oidc/callback/{name}", a.HandlerOpenIDCallback)
 			/*
 						r.Get("/login", a.HandlerLoginData)
@@ -172,25 +194,27 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 				r.Post("/user", a.HandlerLogin)
 				r.Post("/new_password", a.HandlerNewPassword)
 			*/
-			r.Group(func(r chi.Router) {
-				r.Use(middleware.JWTAuth(a))
-				//	r.Get("/user", a.HandlerSessionCheck)
-				//	r.Get("/user", a.HandlerSessionCheck)
-				//		r.Delete("/user", a.HandlerSessionRemove)
-			})
+			/*
+				r.Group(func(r chi.Router) {
+					r.Use(middleware.JWTAuth(a))
+					//	r.Get("/user", a.HandlerSessionCheck)
+					//	r.Get("/user", a.HandlerSessionCheck)
+					//		r.Delete("/user", a.HandlerSessionRemove)
+				})*/
 			//r.HandleFunc("/{user:user\\/?}", userLogin).Methods("POST")
 			//r.HandleFunc("/{user:user\\/?}", userLogin).Methods("POST")
 			//	r.Handle("/{user:user\\/?}", auth.AuthMiddleware(userGet)).Methods("GET")
 			//		r.Handle("/{user:user\\/?}", auth.AuthMiddleware(userDelete)).Methods("DELETE")
 			//r.Post("/auth/refresh", a.RefreshLoginToken)
-			r.Group(func(r chi.Router) {
-				//r.Use(middleware.JWTAuth(a))
-				//r.Use(middleware.SessionCheck(a))
-				r.Get("/intern", a.HandlerIntern)
-				//	r.Get("/user", a.HandlerSessionCheck)
-				//	r.Get("/user", a.HandlerSessionCheck)
-				//		r.Delete("/user", a.HandlerSessionRemove)
-			})
+			/*
+				r.Group(func(r chi.Router) {
+					//r.Use(middleware.JWTAuth(a))
+					//r.Use(middleware.SessionCheck(a))
+					r.Get("/intern", a.HandlerIntern)
+					//	r.Get("/user", a.HandlerSessionCheck)
+					//	r.Get("/user", a.HandlerSessionCheck)
+					//		r.Delete("/user", a.HandlerSessionRemove)
+				})*/
 		})
 
 		//sicherheit muss noch eingebuat werden
@@ -213,6 +237,9 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 		r.Get("/", a.PageHome)
 	*/
 
+	if config.Conf.Dev || config.Conf.ShowApiDoku {
+		r.Mount("/test", httpSwagger.WrapHandler)
+	}
 	if config.Conf.UseEmbedClient {
 		r.Get("/*", a.HandleClient)
 	} else {
@@ -221,7 +248,6 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 		})
 	}
 
-	r.Mount("/swagger", httpSwagger.WrapHandler)
 	return r
 
 }

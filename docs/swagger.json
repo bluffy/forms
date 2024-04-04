@@ -15,14 +15,9 @@
     },
     "basePath": "/",
     "paths": {
-        "/api/v1/": {
+        "/bl-api/page/v1/": {
             "get": {
-                "security": [
-                    {
-                        "Token": []
-                    }
-                ],
-                "description": "get data",
+                "description": "index",
                 "consumes": [
                     "application/json"
                 ],
@@ -32,29 +27,38 @@
                 "tags": [
                     "public"
                 ],
-                "responses": {}
-            }
-        },
-        "/api/v1/intern": {
-            "get": {
-                "security": [
+                "parameters": [
                     {
-                        "Token": []
+                        "description": "Email \u0026 Password",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UserLoginForm"
+                        }
                     }
-                ],
-                "description": "get data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "public"
                 ],
                 "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/models.Token"
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.AppError"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/models.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Response JSON",
                         "schema": {
                             "$ref": "#/definitions/models.AppError"
                         }
@@ -62,7 +66,7 @@
                 }
             }
         },
-        "/page/v1/login": {
+        "/bl-api/page/v1/login": {
             "post": {
                 "description": "login",
                 "consumes": [
@@ -112,6 +116,57 @@
                     }
                 }
             }
+        },
+        "/bl-api/page/v1/register": {
+            "post": {
+                "description": "login",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "public"
+                ],
+                "parameters": [
+                    {
+                        "description": "Email \u0026 Password",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RegisterUserForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.RegisterUserForm"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.AppError"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/models.AppError"
+                        }
+                    },
+                    "500": {
+                        "description": "Response JSON",
+                        "schema": {
+                            "$ref": "#/definitions/models.AppError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -134,6 +189,29 @@
                             "type": "string"
                         }
                     }
+                }
+            }
+        },
+        "models.RegisterUserForm": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "newsletter": {
+                    "type": "boolean"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "terms_agree": {
+                    "type": "boolean"
                 }
             }
         },

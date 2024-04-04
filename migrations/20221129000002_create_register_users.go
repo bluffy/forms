@@ -9,10 +9,10 @@ import (
 )
 
 func init() {
-	goose.AddMigrationContext(Up_20221129000003, Down_20221129000003)
+	goose.AddMigrationContext(Up_20221129000002, Down_20221129000002)
 }
 
-func Up_20221129000003(ctx context.Context, txn *sql.Tx) error {
+func Up_20221129000002(ctx context.Context, txn *sql.Tx) error {
 
 	sql := "missing dialect"
 	switch dbType := config.Conf.Database.Type; dbType {
@@ -39,7 +39,7 @@ func Up_20221129000003(ctx context.Context, txn *sql.Tx) error {
 
 }
 
-func Down_20221129000003(ctx context.Context, txn *sql.Tx) error {
+func Down_20221129000002(ctx context.Context, txn *sql.Tx) error {
 	_, err := txn.Exec("DROP TABLE IF EXISTS register_users;")
 	return err
 }

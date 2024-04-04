@@ -6,13 +6,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// HandleQueryGet godoc
-// @Tags         public
-// @Description  get data
-// @Accept       json
-// @Produce      json
-// @Router       /api/v1/ [get]
-// @Security     Token
 func (app *App) HandlerIndex(res http.ResponseWriter, req *http.Request) {
 	//app.printError(res, http.StatusInternalServerError, 200, nil, "")
 

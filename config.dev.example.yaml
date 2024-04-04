@@ -1,5 +1,8 @@
 debug: true
 dev: true
+server:
+  public_url: http://localhost:4090/
+  client_url: http://localhost:4090/
 database:
   type: mysql #sqlite
   mysql:

@@ -43,6 +43,7 @@ func init() {
 type config struct {
 	Dev            bool
 	Debug          bool
+	ShowApiDoku    bool   `yaml:"show_api_doku" default:"false"`
 	Language       string `default:"en"`
 	LogLanguage    string `yaml:"log_language" default:"en"`
 	UseEmbedClient bool   `yaml:"use_embed_client" default:"true"`
@@ -52,7 +53,8 @@ type config struct {
 		Port                 int           `yaml:"port" default:"4090"`
 		PortIntern           int           `yaml:"port_intern" default:"4091"`
 		Host                 string        `default:"127.0.0.1"`
-		PublicUrl            string        `yaml:"public_url"`
+		PublicURL            string        `yaml:"public_url"`
+		ClientUrl            string        `yaml:"client_url"`
 		TimeoutRead          time.Duration `yaml:"timeout_read" default:"default=30s"`
 		TimeoutWrite         time.Duration `yaml:"timeout_write" default:"default=30s"`
 		TimeoutIdle          time.Duration `yaml:"timeout_idle" default:"default=45s"`
@@ -97,7 +99,7 @@ func (conf *config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 func LoadConfig(configFile string) (*config, error) {
 
 	if Conf != nil {
-		return nil, errors.New("config already loaded!")
+		return nil, errors.New("config already loaded")
 	}
 
 	config := &config{}
@@ -113,6 +115,13 @@ func LoadConfig(configFile string) (*config, error) {
 	d := yaml.NewDecoder(file)
 	if err := d.Decode(&config); err != nil {
 		return nil, err
+	}
+
+	if config.Server.PublicURL == "" {
+		return nil, errors.New("config missing: server.public_url (https://domain.com/)")
+	}
+	if config.Server.ClientUrl == "" {
+		config.Server.ClientUrl = config.Server.PublicURL
 	}
 
 	Conf = config

@@ -93,11 +93,16 @@ func main() {
 	}
 
 	if config.Conf.Debug {
-		log.Info("DEBUG Mode")
+		log.Info("DEBUG ON")
 		log.SetLevel(log.DebugLevel)
 	} else {
-		log.Info("PRODUCTION Mode")
+		log.Info("Debug OFF")
 		log.SetLevel(log.InfoLevel)
+	}
+	if config.Conf.Dev {
+		log.Info("Envrionment DEV")
+	} else {
+		log.Info("Envrionment Porduction")
 	}
 
 	if opts.InitAdminEmail != "" {
@@ -146,7 +151,8 @@ func Server(opts ArgOptions, args []string) {
 	var db *gorm.DB
 	var err error
 
-	log.Info("Set Language: " + config.Conf.Language)
+	log.Info("Default Language: " + config.Conf.Language)
+	log.Info("Log/System Language: " + config.Conf.LogLanguage)
 
 	appLang := lang.AppLang(dataFS)
 
@@ -154,10 +160,12 @@ func Server(opts ArgOptions, args []string) {
 	log.Info("Connect Database: " + config.Conf.Database.Type)
 
 	for i := 1; i <= 100; i++ {
+		log.Info("Try Connect Database  " + strconv.Itoa(i) + " of " + strconv.Itoa(100))
 		db, err = dbConn.New()
 		if err != nil {
 			log.Error(err)
 		} else {
+			log.Info("Connected")
 			break
 		}
 		time.Sleep(4 * time.Second)
@@ -171,7 +179,7 @@ func Server(opts ArgOptions, args []string) {
 		log.Info("Program exited")
 		return
 	}
-	log.Info("Server Start")
+	log.Info("Server Starting ...")
 	/*
 		err = db.Ping()
 		if err != nil {
@@ -225,6 +233,14 @@ func Server(opts ArgOptions, args []string) {
 		}
 	*/
 
+	log.Info("Server is READY")
+	log.Info("##########################")
+	log.Infof("Public URL: %v", config.Conf.Server.PublicURL)
+	if config.Conf.Server.PublicURL != config.Conf.Server.ClientUrl {
+		log.Infof("Client URL: %v", config.Conf.Server.PublicURL)
+	}
+	log.Infof("API Doku: %v", config.Conf.Server.PublicURL+"bl-api/")
+	log.Info("##########################")
 	// create a channel to subscribe ctrl+c/SIGINT event
 	sigInterruptChannel := make(chan os.Signal, 1)
 

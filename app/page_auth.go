@@ -25,7 +25,7 @@ import (
 // @Failure      401 {object} models.AppError
 // @Failure      422 {object} models.AppError
 // @Failure      500 {object} models.AppError "Response JSON"
-// @Router       /page/v1/login [post]
+// @Router       /bl-api/page/v1/login [post]
 func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 	form := &models.UserLoginForm{}
 	if app.checkForm(form, w, r) {
@@ -60,12 +60,12 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 // @Description  login
 // @Accept       json
 // @Produce      json
-// @Param data body models.UserRegisterForm  true "Email & Password"
-// @Success      200 {object} models.UserRegisterResponse
+// @Param data body models.RegisterUserForm  true "Email & Password"
+// @Success      200 {object} models.RegisterUserForm
 // @Failure      401 {object} models.AppError
 // @Failure      422 {object} models.AppError
 // @Failure      500 {object} models.AppError "Response JSON"
-// @Router       /page/v1/register [post]
+// @Router       /bl-api/page/v1/register [post]
 func (app *App) HandlerRgister(w http.ResponseWriter, r *http.Request) {
 	form := &models.RegisterUserForm{}
 	if app.checkForm(form, w, r) {
@@ -96,7 +96,18 @@ func (app *App) HandlerRgister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Debug(registerUser)
+	mail_text := "register link: " + registerUser.ID
+	var mail models.Mail
+	mail.Status = 0
+	mail.Sender = "system@bluffy.de"
+	mail.Text = &mail_text
+	mail.Recipient = registerUser.Email
+	_, err = repository.CreateMail(app.db, &mail)
+	if err != nil {
+		app.printError(w, http.StatusUnprocessableEntity, 104, err, "")
+		return
+	}
+
 	// SEND MAIL
 
 	var response models.UserRegisterResponse
