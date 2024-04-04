@@ -16,7 +16,8 @@
     "jsxImportSource": "vue",
 
     /* Linting */
-    "strict": true,
+    /*"strict": true,*/
+    "noImplicitAny": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true

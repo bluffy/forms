@@ -23,9 +23,9 @@ function responseError(err: any) {
 
 onMounted(() => {
 
-    return ApiService.get("/").then(
+    return ApiService.getPage("/").then(
         (page: PageIndex) => {
-            console.log(page)
+            console.log(page.data)
 
         },
         (err: any) => { 

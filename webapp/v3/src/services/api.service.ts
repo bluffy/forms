@@ -3,23 +3,39 @@ import { useAppStore } from "../stores/app";
 //const path_api = import.meta.env.VITE_APP_API_PATH
 const path_page = import.meta.env.VITE_APP_API_PATH_PAGE
 
-class PageService {
 
-    get(slug: string, params?: any) {
+function get(path: string, slug: string, params?: any ) {
+  const appStore = useAppStore()
+  appStore.startLoading()        
+  return api.get(path + slug, {
+    params: params
+  }).then((response) => {
+    return {status: response.status, data: response.data};
+  }).finally(() => {
+    appStore.endLoad()
+  });
+}
 
-        const appStore = useAppStore()
-        appStore.startLoading()
-        
-        return api.get(path_page + slug, {
-          params: params
-        }).then((response) => {
-          return response.data;
-        }).finally(() => {
-          appStore.endLoad()
-        });
+function post(path: string, slug: string, values?: any ) {
+  const appStore = useAppStore()
+  appStore.startLoading()        
+  return api.post(path + slug, values).then((response) => {
+    return {status: response.status, data: response.data};
+  }).finally(() => {
+    appStore.endLoad()
+  });
+}
 
+class ApiService {
 
+    getPage(slug: string, params?: any) {
+        return get(path_page, slug, params)
     }
+
+    postPage(slug: string, values?:any) {
+      return post(path_page, slug, values)
+    }
+
 
     query(params?: any) {
 
@@ -74,4 +90,4 @@ class PageService {
 
 }
 
-export default new PageService();
+export default new ApiService();

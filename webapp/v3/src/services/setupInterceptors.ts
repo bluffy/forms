@@ -1,6 +1,6 @@
 import axiosInstance from "./api";
 import router from "../router";
-
+import { useRoute } from 'vue-router'
 
 const setup = () => {
   axiosInstance.interceptors.response.use(
@@ -9,16 +9,26 @@ const setup = () => {
       return res;
     },
     async (err: any) => {
+      
+     
 
+    
 
       if (!(err.config.url == "/login" || err.config.url == "/signup")) {
+
         console.log("FEHLER")
 
         if (err.response.status === 400 || err.response.status === 401) {
-         // window.location.href = "/login?redir=" + err.config.url;
-        
-//         router.push( { name: 'login', params: {redir: err.config.url, error: err }});
-         router.push( { name: 'login', query: { redirect: err.config.url }});
+
+         const path = window.location.pathname
+
+         if (path == "/") {
+          router.push( { name: 'login'});
+         }else {
+          router.push( { name: 'login', query: { redirect: window.location.pathname }});
+
+         }
+
         
           return Promise.reject(err);
         }else if  (err.response.status === 403){
