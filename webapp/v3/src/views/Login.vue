@@ -1,32 +1,30 @@
 <template>
-<div>
-
-  <div  v-if="formValues">
-    <Form  @submit="onSubmit"  :initial-values="formValues">
-        <div class="mb-3 row">
-            <div v-for="field in fields">
-                <div class="col-12">
-                    <label :for="field.name" class="form-label">{{ field.label }}</label>
-                    <Field  :id="field.name" :type="field.type" :name="field.name"  class="form-control" :placeholder="field.placeholder"   />
-                    <div  class="text-danger" >
-                        <ErrorMessage :name="field.name" />&nbsp;
+    <div>
+        <div v-if="formValues">
+            <Form @submit="onSubmit" :initial-values="formValues">
+                <div class="mb-3 row">
+                    <div v-for="field in fields">
+                        <div class="col-12">
+                            <label :for="field.name" class="form-label">{{ field.label }}</label>
+                            <Field :id="field.name" :type="field.type" :name="field.name" class="form-control"
+                                :placeholder="field.placeholder" />
+                            <div class="text-danger">
+                                <ErrorMessage :name="field.name" />&nbsp;
+                            </div>
+                        </div>
                     </div>
-                </div>                
-            </div>
-            <div class="col-12">
-                <button class="btn btn-primary" type="submit">Submit form</button>
-            </div>
+                    <div class="col-12">
+                        <button class="btn btn-primary" type="submit">Submit form</button>
+                    </div>
+                </div>
+            </Form>
         </div>
-    </Form>
-
-</div>
-<AlertDialog ref="dialog"></AlertDialog>
-
-</div>
+        <AlertDialog ref="dialog"></AlertDialog>
+    </div>
 </template>
 <script lang="ts" setup>
 
-import { Form, Field, ErrorMessage} from 'vee-validate';
+import { Form, Field, ErrorMessage } from 'vee-validate';
 import { ref, onMounted } from 'vue'
 import { genResponseError } from "../utils/errorMessage";
 import type { PageNoContent } from "../models/page.model";
@@ -66,13 +64,13 @@ function onSubmit(values: any, actions: any) {
             }
             if (route.query.redirect) {
                 router.push(route.query.redirect.toString());
-                return            
+                return
             }
             router.push("/");
             return;
 
         },
-        (err: any) => { 
+        (err: any) => {
             const errors = genResponseError(err);
             if (errors?.fields) {
                 actions.setErrors(errors.fields);
@@ -83,7 +81,7 @@ function onSubmit(values: any, actions: any) {
                 return;
             }
         }
-      );
+    );
 };
 
 
@@ -97,4 +95,3 @@ onMounted(() => {
 
 
 </script>
-  
