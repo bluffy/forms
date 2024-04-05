@@ -3,13 +3,16 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"time"
 
 	"goapp/models"
 	"goapp/repository"
 	"goapp/util/tools"
 
 	"gitea.com/go-chi/session"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -97,12 +100,42 @@ func (app *App) HandlerRgister(w http.ResponseWriter, r *http.Request) {
 	mail_text := "register link: " + registerUser.ID
 	var mail models.Mail
 	mail.Status = 0
-	mail.Sender = "system@bluffy.de"
 	mail.Text = &mail_text
 	mail.Recipient = registerUser.Email
-	_, err = repository.CreateMail(app.db, &mail)
+	mail.Subject = "New User"
+	mail.Sender = "dev@bluffy.de"
+	mail.Status = 2 // wird gleich gesendet!!!
+	dbMail, err := repository.CreateMail(app.db, &mail)
 	if err != nil {
 		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__database_error, "Error__database_error in CreateMail", err)
+		return
+	}
+
+	serviceMail := dbMail.ToServiceMail()
+	logMsg, err := serviceMail.SendMail(&app.conf.Smtp)
+
+	if err != nil {
+		mailError := fmt.Sprintf("%v", err)
+		dbMail.ErrorMessage = logMsg
+		dbMail.Error = &mailError
+
+		log.Printf("%+v\n", app.conf.Smtp)
+		log.Debugf("%+v\n", app.conf.Smtp)
+		dbMail.Status = 9
+
+	} else {
+		dbMail.Status = 3
+		now := time.Now()
+		dbMail.SendAt = &now
+	}
+	_, errDB := repository.UpdateMail(app.db, dbMail)
+	if errDB != nil {
+		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__database_error, "Error__database_error in UpdateMail", err)
+		return
+	}
+
+	if err != nil {
+		app.JsonError(w, http.StatusUnprocessableEntity, "Register Mail not Sent", "", err)
 		return
 	}
 

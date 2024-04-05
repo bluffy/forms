@@ -66,13 +66,13 @@ func Up_20221129000000(ctx context.Context, txn *sql.Tx) error {
 	switch dbType := GetType(); dbType {
 	case "mysql":
 		sql = `
-		INSERT INTO users (id,email,password,is_admin,created_at) 
-		VALUES('` + id + `', '` + email + `','` + password + `', 1, NOW());
+		INSERT INTO users (id,email,password,is_admin,created_at, updated_at) 
+		VALUES('` + id + `', '` + email + `','` + password + `', 1, NOW(), NOW());
 		`
 	case "sqlite":
 		sql = `
-		INSERT INTO users (id,email,password,is_admin,created_at) 
-		VALUES('` + id + `', '` + email + `','` + password + `', 1, TIME());
+		INSERT INTO users (id,email,password,is_admin,created_at, updated_at) 
+		VALUES('` + id + `', '` + email + `','` + password + `', 1, TIME(),TIME());
 		`
 	}
 

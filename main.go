@@ -318,7 +318,7 @@ func migrate(appConfig *config.Config, db *gorm.DB, migrateCMD string, migrateAr
 		}
 	}
 	if migrateCMD == "reset" {
-		if appConfig.Dev != true {
+		if !appConfig.Dev {
 			log.Fatal("command not allowd in PROD")
 		} else {
 			if err := goose_v3.Reset(appDb, "migrations"); err != nil {
@@ -329,7 +329,7 @@ func migrate(appConfig *config.Config, db *gorm.DB, migrateCMD string, migrateAr
 
 	}
 	if migrateCMD == "up-by-one" {
-		if err := goose_v3.Reset(appDb, "migrations"); err != nil {
+		if err := goose_v3.UpByOne(appDb, "migrations"); err != nil {
 			log.Fatal(err)
 		}
 	}

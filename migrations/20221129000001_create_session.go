@@ -82,6 +82,6 @@ func Up_20221129000001(ctx context.Context, tx *sql.Tx) error {
 }
 
 func Down_20221129000001(ctx context.Context, txn *sql.Tx) error {
-	_, err := txn.ExecContext(ctx, "DROP TABLE IF EXISTS sessions;")
+	_, err := txn.ExecContext(ctx, "DROP TABLE IF EXISTS session;")
 	return err
 }

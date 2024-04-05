@@ -24,3 +24,10 @@ func CreateMail(db *gorm.DB, obj *models.Mail) (*models.Mail, error) {
 	}
 	return obj, nil
 }
+func UpdateMail(db *gorm.DB, obj *models.Mail) (*models.Mail, error) {
+
+	if err := db.Updates(obj).Error; err != nil {
+		return nil, err
+	}
+	return obj, nil
+}
