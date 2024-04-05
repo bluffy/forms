@@ -8,7 +8,6 @@ import (
 
 	"goapp/app"
 	"goapp/app/middleware"
-	"goapp/config"
 
 	"gitea.com/go-chi/session"
 	"github.com/go-chi/chi/v5"
@@ -90,14 +89,14 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 	r.Use(cors.Handler(cors.Options{
 		//AllowedOrigins:   []string{"*"},
 		//AllowedOrigins:   []string{"http://localhost*", "http://127.0.0.1*", "http://127.0.0.1*", "http://128.140.68.242"},
-		AllowedOrigins:   config.Conf.Server.Cors.AllowedOrigins,
-		AllowCredentials: config.Conf.Server.Cors.AllowCredentials,
+		AllowedOrigins:   a.Conf().Server.Cors.AllowedOrigins,
+		AllowCredentials: a.Conf().Server.Cors.AllowCredentials,
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-		AllowedMethods: config.Conf.Server.Cors.AllowedMethods,
-		AllowedHeaders: config.Conf.Server.Cors.AllowedHeaders,
-		ExposedHeaders: config.Conf.Server.Cors.ExposedHeaders,
+		AllowedMethods: a.Conf().Server.Cors.AllowedMethods,
+		AllowedHeaders: a.Conf().Server.Cors.AllowedHeaders,
+		ExposedHeaders: a.Conf().Server.Cors.ExposedHeaders,
 
-		MaxAge: config.Conf.Server.Cors.MaxAge, // Maximum value not ignored by any of major browsers
+		MaxAge: a.Conf().Server.Cors.MaxAge, // Maximum value not ignored by any of major browsers
 	}))
 
 	r.HandleFunc("/healthz", a.HanlderHealth)
@@ -149,7 +148,7 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 	*/
 
 	r.Route("/bl-api", func(r chi.Router) {
-		if config.Conf.Dev || config.Conf.ShowApiDoku {
+		if a.Conf().Dev || a.Conf().ShowApiDoku {
 			r.Mount("/", httpSwagger.WrapHandler)
 		}
 		r.Route("/page", func(r chi.Router) {
@@ -163,7 +162,7 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 
 				r.Group(func(r chi.Router) {
 					r.Use(middleware.ContentTypeJson)
-					r.Use(middleware.SessionCheck())
+					r.Use(middleware.SessionCheck(a))
 					r.Get("/", a.PageIndex)
 				})
 
@@ -239,7 +238,7 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 		r.Get("/", a.PageHome)
 	*/
 
-	if config.Conf.UseEmbedClient {
+	if a.Conf().UseEmbedClient {
 		r.Get("/*", a.HandleClient)
 	} else {
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {

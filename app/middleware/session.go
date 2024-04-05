@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"context"
-	"fmt"
+	"goapp/app"
 	"net/http"
 
 	"gitea.com/go-chi/session"
@@ -10,15 +10,14 @@ import (
 
 type UserIDKey struct{}
 
-func SessionCheck() func(next http.Handler) http.Handler {
+func SessionCheck(a *app.App) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 
 			sessStore := session.GetSession(r)
 			user_id := sessStore.Get("user_id")
 			if user_id == nil {
-				w.WriteHeader(http.StatusUnauthorized)
-				fmt.Fprintf(w, `{"error": {"message": "%v"}}`, "session not exists or expired")
+				a.JsonError(w, http.StatusUnauthorized, a.GetLocale("").Text.Session__error_sessen_not_exists_or_expired, "", nil)
 				return
 			}
 

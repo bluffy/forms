@@ -86,20 +86,20 @@ func main() {
 		configFile = os.Getenv("CONFIG_FILE")
 	}
 
-	_, err = config.LoadConfig(configFile)
+	appConfig, err := config.New(configFile)
 	if err != nil {
 		log.WithField("error", err).Fatal("Error in reading Config File")
 		return
 	}
 
-	if config.Conf.Debug {
+	if appConfig.Debug {
 		log.Info("DEBUG ON")
 		log.SetLevel(log.DebugLevel)
 	} else {
 		log.Info("Debug OFF")
 		log.SetLevel(log.InfoLevel)
 	}
-	if config.Conf.Dev {
+	if appConfig.Dev {
 		log.Info("Envrionment DEV")
 	} else {
 		log.Info("Envrionment Porduction")
@@ -128,7 +128,7 @@ func main() {
 		return
 	}
 
-	Server(opts, args)
+	Server(appConfig, opts, args)
 }
 
 // @title  app server
@@ -146,22 +146,22 @@ func main() {
 // @name Authorization
 // @description Type "Token" followed by a space and JWT token.
 // Server function creates start Listenen Server
-func Server(opts ArgOptions, args []string) {
+func Server(appConfig *config.Config, opts ArgOptions, args []string) {
 
 	var db *gorm.DB
 	var err error
 
-	log.Info("Default Language: " + config.Conf.Language)
-	log.Info("Log/System Language: " + config.Conf.LogLanguage)
+	log.Info("Default Language: " + appConfig.Language)
+	//log.Info("Log/System Language: " + appConfig.LogLanguage)
 
-	appLang := lang.AppLang(dataFS)
+	appLang := lang.AppLang(appConfig.Language, dataFS)
 
 	// check DB Connection on Start 100 times
-	log.Info("Connect Database: " + config.Conf.Database.Type)
+	log.Info("Connect Database: " + appConfig.Database.Type)
 
 	for i := 1; i <= 100; i++ {
 		log.Info("Try Connect Database  " + strconv.Itoa(i) + " of " + strconv.Itoa(100))
-		db, err = dbConn.New()
+		db, err = dbConn.New(&appConfig.Database)
 		if err != nil {
 			log.Error(err)
 		} else {
@@ -174,8 +174,8 @@ func Server(opts ArgOptions, args []string) {
 		log.Error("Start Failed: Stopped Trying DB Connection")
 		return
 	}
-	log.Info("Start Migrate: " + config.Conf.Database.Type)
-	if migrate(db, opts.Migrate, args, config.Conf.Database.Type) {
+	log.Info("Start Migrate: " + appConfig.Database.Type)
+	if migrate(appConfig, db, opts.Migrate, args, appConfig.Database.Type) {
 		log.Info("Program exited")
 		return
 	}
@@ -189,10 +189,10 @@ func Server(opts ArgOptions, args []string) {
 
 	validator := vr.New()
 
-	addressApp := fmt.Sprintf(":%d", config.Conf.Server.Port)
-	addressApi := fmt.Sprintf(":%d", config.Conf.Server.PortIntern)
+	addressApp := fmt.Sprintf(":%d", appConfig.Server.Port)
+	addressApi := fmt.Sprintf(":%d", appConfig.Server.PortIntern)
 
-	application := app.New(validator, appLang, db)
+	application := app.New(validator, appLang, db, appConfig)
 
 	appRouter := router.NewApp(application, publicFS)
 	internRouter := router.NewIntern(application, publicFS)
@@ -200,17 +200,17 @@ func Server(opts ArgOptions, args []string) {
 	srv := &http.Server{
 		Addr:         addressApp,
 		Handler:      appRouter,
-		ReadTimeout:  config.Conf.Server.TimeoutRead,
-		WriteTimeout: config.Conf.Server.TimeoutWrite,
-		IdleTimeout:  config.Conf.Server.TimeoutIdle,
+		ReadTimeout:  appConfig.Server.TimeoutRead,
+		WriteTimeout: appConfig.Server.TimeoutWrite,
+		IdleTimeout:  appConfig.Server.TimeoutIdle,
 	}
 
 	srvIntern := &http.Server{
 		Addr:         addressApi,
 		Handler:      internRouter,
-		ReadTimeout:  config.Conf.Server.TimeoutRead,
-		WriteTimeout: config.Conf.Server.TimeoutWrite,
-		IdleTimeout:  config.Conf.Server.TimeoutIdle,
+		ReadTimeout:  appConfig.Server.TimeoutRead,
+		WriteTimeout: appConfig.Server.TimeoutWrite,
+		IdleTimeout:  appConfig.Server.TimeoutIdle,
 	}
 
 	log.Infof("Starting APP Server %v", addressApp)
@@ -235,11 +235,11 @@ func Server(opts ArgOptions, args []string) {
 
 	log.Info("Server is READY")
 	log.Info("##########################")
-	log.Infof("Public URL: %v", config.Conf.Server.PublicURL)
-	if config.Conf.Server.PublicURL != config.Conf.Server.ClientUrl {
-		log.Infof("Client URL: %v", config.Conf.Server.PublicURL)
+	log.Infof("Public URL: %v", appConfig.Server.PublicURL)
+	if appConfig.Server.PublicURL != appConfig.Server.ClientUrl {
+		log.Infof("Client URL: %v", appConfig.Server.PublicURL)
 	}
-	log.Infof("API Doku: %v", config.Conf.Server.PublicURL+"bl-api/")
+	log.Infof("API Doku: %v", appConfig.Server.PublicURL+"bl-api/")
 	log.Info("##########################")
 	// create a channel to subscribe ctrl+c/SIGINT event
 	sigInterruptChannel := make(chan os.Signal, 1)
@@ -250,7 +250,7 @@ func Server(opts ArgOptions, args []string) {
 
 	// create a context which will expire after 4 seconds of grace period
 	timeout := time.Second * 4
-	if config.Conf.Dev {
+	if appConfig.Dev {
 		timeout = time.Second
 	}
 
@@ -276,7 +276,7 @@ func Server(opts ArgOptions, args []string) {
 
 }
 
-func migrate(db *gorm.DB, migrateCMD string, migrateArgs []string, dialect string) (doExit bool) {
+func migrate(appConfig *config.Config, db *gorm.DB, migrateCMD string, migrateArgs []string, dialect string) (doExit bool) {
 	appDb, err := db.DB()
 	if err != nil {
 		log.Fatal(err)
@@ -284,8 +284,9 @@ func migrate(db *gorm.DB, migrateCMD string, migrateArgs []string, dialect strin
 	}
 
 	goose_v3.SetBaseFS(embedMigrations)
-
 	goose_v3.SetLogger(goose_logger.New())
+
+	os.Setenv("BL_MIGRATE_DATABASE_TYPE", appConfig.Database.Type)
 
 	if err := goose_v3.SetDialect(dialect); err != nil {
 		log.Fatal(err)
@@ -297,7 +298,7 @@ func migrate(db *gorm.DB, migrateCMD string, migrateArgs []string, dialect strin
 		}
 	}
 	if migrateCMD == "down" {
-		if config.Conf.Dev != true {
+		if appConfig.Dev != true {
 			log.Fatal("command not allowd in PROD")
 		} else {
 			if err := goose_v3.Down(appDb, "migrations"); err != nil {
@@ -317,7 +318,7 @@ func migrate(db *gorm.DB, migrateCMD string, migrateArgs []string, dialect strin
 		}
 	}
 	if migrateCMD == "reset" {
-		if config.Conf.Dev != true {
+		if appConfig.Dev != true {
 			log.Fatal("command not allowd in PROD")
 		} else {
 			if err := goose_v3.Reset(appDb, "migrations"); err != nil {
@@ -347,7 +348,7 @@ func migrate(db *gorm.DB, migrateCMD string, migrateArgs []string, dialect strin
 				log.Fatal(err)
 			}
 		} else {
-			if config.Conf.Dev != true {
+			if appConfig.Dev != true {
 				log.Fatal("command not allowd in PROD")
 			} else {
 				if err := goose_v3.DownTo(appDb, "migrations", version); err != nil {

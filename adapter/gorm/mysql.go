@@ -11,14 +11,14 @@ import (
 	"gorm.io/gorm"
 )
 
-func openMysql() (*gorm.DB, error) {
+func openMysql(conf *config.MysqlConf) (*gorm.DB, error) {
 
 	cfg := &gosql.Config{
 		Net:                  "tcp",
-		Addr:                 fmt.Sprintf("%v:%v", config.Conf.Database.Mysql.Host, config.Conf.Database.Mysql.Port),
-		DBName:               config.Conf.Database.Mysql.Database,
-		User:                 config.Conf.Database.Mysql.Username,
-		Passwd:               config.Conf.Database.Mysql.Password,
+		Addr:                 fmt.Sprintf("%v:%v", conf.Host, conf.Port),
+		DBName:               conf.Database,
+		User:                 conf.Username,
+		Passwd:               conf.Password,
 		AllowNativePasswords: true,
 		ParseTime:            true,
 	}

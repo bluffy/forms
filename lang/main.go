@@ -2,12 +2,13 @@ package lang
 
 import (
 	"embed"
-	"goapp/config"
 	"io/fs"
 
+	"github.com/creasty/defaults"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 
+	"goapp/lang/locale"
 	"path/filepath"
 )
 
@@ -16,47 +17,37 @@ type Region struct {
 	Error map[int]string
 }
 
+type Locale struct {
+	Text      locale.Text      `yaml:"text"`
+	Validator locale.Validator `yaml:"validator"`
+	Error     locale.Error     `yaml:"error"`
+}
+
 type Lang struct {
-	Region  map[string]Region
-	Default string
-	Log     string
+	Region        map[string]Region
+	Locale        map[string]Locale
+	DefaultLocale *Locale
+	Default       string
+	Log           string
 }
 
-/*
-type Lang map[string]Code
-type Code struct {
-	Error map[string]string
-}
-*/
-
-/*
-	func init() {
-		if _, err := toml.DecodeFile("./data/lang/de.toml", &Lang.Error); err != nil {
-			panic(err)
-		}
-	}
-	func AppLang(confLang string, langFS embed.FS) *Lang {
-	language := make(Lang, 1)
-	code := &Code{}
-	if _, err := toml.DecodeFS(langFS, "data/lang/en.toml", &code); err != nil {
-		panic(err)
-	}
-
-		if _, err := toml.DecodeFile("./data/lang/de.toml", &code); err != nil {
-			panic(err)
-		}
-
-	language[confLang] = *code
-	return &language
-	}
-*/
-
-func AppLang(langFS embed.FS) *Lang {
+func AppLang(defaultLang string, langFS embed.FS) *Lang {
 	var files []string
 	var language Lang
-	language.Default = config.Conf.Language
-	language.Log = config.Conf.LogLanguage
+	language.Default = defaultLang
 	language.Region = make(map[string]Region)
+	language.Locale = make(map[string]Locale)
+
+	locale := &Locale{}
+
+	err := yaml.Unmarshal([]byte(``), &locale)
+	if err != nil {
+		log.Info(err)
+		log.Fatal("Error in Example")
+	}
+	language.DefaultLocale = locale
+
+	language.Locale[language.Default] = *locale
 
 	if err := fs.WalkDir(langFS, ".", func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
@@ -77,19 +68,39 @@ func AppLang(langFS embed.FS) *Lang {
 
 	for _, file := range files {
 		f, _ := langFS.Open(file)
+		f2, _ := langFS.Open(file)
 		//b, _ := io.ReadAll(f)
 
 		d := yaml.NewDecoder(f)
+		d2 := yaml.NewDecoder(f2)
+
 		region := &Region{}
+		locale := &Locale{}
 
 		err := d.Decode(&region)
 		if err != nil {
-			log.Info("Error Lang Parsing: " + file)
+			log.Info("Error1 Lang Parsing: " + file)
 			log.Info(err)
 		} else {
 			code := file[:len(file)-len(filepath.Ext(file))]
 			code = filepath.Base(code)
 			language.Region[code] = *region
+		}
+
+		err = d2.Decode(&locale)
+		if err != nil {
+
+			log.Info("Error Lang Parsing: " + file)
+			log.Info(err)
+		} else {
+			code := file[:len(file)-len(filepath.Ext(file))]
+			code = filepath.Base(code)
+			language.Locale[code] = *locale
+
+			if code == language.Default {
+				language.DefaultLocale = locale
+			}
+
 		}
 
 	}
@@ -100,13 +111,16 @@ func AppLang(langFS embed.FS) *Lang {
 		return nil
 	}
 
-	_, ok = language.Region[language.Log]
-	if !ok {
-		log.Fatal("Error in Lang: Log lang: " + language.Log + " not exists!")
-		return nil
-	}
-
 	return &language
+}
+
+func (conf *Locale) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	defaults.Set(conf)
+	type plain Locale
+	if err := unmarshal((*plain)(conf)); err != nil {
+		return err
+	}
+	return nil
 }
 
 /*

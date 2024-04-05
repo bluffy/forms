@@ -10,6 +10,7 @@ forms:
   alpha_space: "can only contain alphabetic and space characters"
   date: "must be a valid date"
   default: "something wrong %s"
+
 error:
   101: Uknown Error  
   102: Error on Server App # JSON Encode Error
@@ -26,4 +27,3 @@ error:
   203: invalid token
   204: unable to create access token
   210: user already registered
-  

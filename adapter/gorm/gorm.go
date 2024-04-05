@@ -16,12 +16,12 @@ type ModelUID struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
-func New() (*gorm.DB, error) {
-	if config.Conf.Database.Type == "mysql" {
-		return openMysql()
+func New(conf *config.Database) (*gorm.DB, error) {
+	if conf.Type == "mysql" {
+		return openMysql(&conf.Mysql)
 	}
-	if config.Conf.Database.Type == "sqlite" {
-		return openSqlite()
+	if conf.Type == "sqlite" {
+		return openSqlite(&conf.Sqlite)
 	}
 	return nil, errors.New("no database Connector found! wrong type? (mysql,sqlite)")
 

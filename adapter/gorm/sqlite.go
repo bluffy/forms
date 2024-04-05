@@ -10,11 +10,11 @@ import (
 	"gorm.io/gorm"
 )
 
-func openSqlite() (*gorm.DB, error) {
+func openSqlite(conf *config.SqliteConf) (*gorm.DB, error) {
 
-	log.Info("SQL File: " + config.Conf.Database.Sqlite.Path)
+	log.Info("SQL File: " + conf.Path)
 
-	return gorm.Open(sqlite.Open(config.Conf.Database.Sqlite.Path), &gorm.Config{
+	return gorm.Open(sqlite.Open(conf.Path), &gorm.Config{
 		Logger: gorm_logger.New(),
 	})
 

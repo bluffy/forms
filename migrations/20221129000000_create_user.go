@@ -3,7 +3,6 @@ package migrations
 import (
 	"context"
 	"database/sql"
-	"goapp/config"
 	"goapp/util/tools"
 	"os"
 
@@ -16,6 +15,7 @@ func init() {
 }
 
 func Up_20221129000000(ctx context.Context, txn *sql.Tx) error {
+
 	id := ksuid.New().String()
 	email := "dev@bluffy.de"
 	password := "mgr"
@@ -36,7 +36,7 @@ func Up_20221129000000(ctx context.Context, txn *sql.Tx) error {
 	}
 
 	sql := "missing dialect"
-	switch dbType := config.Conf.Database.Type; dbType {
+	switch dbType := GetType(); dbType {
 	default:
 		sql = `
 			CREATE TABLE IF NOT EXISTS users
@@ -63,7 +63,7 @@ func Up_20221129000000(ctx context.Context, txn *sql.Tx) error {
 	}
 
 	sql = "missing dialect"
-	switch dbType := config.Conf.Database.Type; dbType {
+	switch dbType := GetType(); dbType {
 	case "mysql":
 		sql = `
 		INSERT INTO users (id,email,password,is_admin,created_at) 

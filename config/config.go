@@ -12,45 +12,21 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var Conf *config
-
-/*
-	func init() {
-		configFile := "config.yaml"
-		var opts ArgOptions
-
-		log.Println("TEST")
-		_, err := flags.ParseArgs(&opts, os.Args)
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
-		if opts.Config != "" {
-			configFile = opts.Config
-		}
-
-		Conf, err := AppConfig(configFile)
-
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
-		log.Info(Conf)
-
+type MysqlConf struct {
+	Username string
+	Password string
+	Database string
+	Host     string
+	Port     string
 }
-*/
+type SqliteConf struct {
+	Path string `default:"database.db"`
+}
+
 type Database struct {
-	Type  string
-	Mysql struct {
-		Username string
-		Password string
-		Database string
-		Host     string
-		Port     string
-	}
-	Sqlite struct {
-		Path string `default:"database.db"`
-	}
+	Type   string
+	Mysql  MysqlConf
+	Sqlite SqliteConf
 }
 type Cors struct {
 	AllowedOrigins   []string `yaml:"allowed_orgins" default:"[\"https://*\",\"http://*\"]"`
@@ -61,12 +37,11 @@ type Cors struct {
 	MaxAge           int      `yaml:"max_age" default:"300"`
 }
 
-type config struct {
+type Config struct {
 	Dev            bool
 	Debug          bool
 	ShowApiDoku    bool   `yaml:"show_api_doku" default:"false"`
 	Language       string `default:"en"`
-	LogLanguage    string `yaml:"log_language" default:"en"`
 	UseEmbedClient bool   `yaml:"use_embed_client" default:"true"`
 	EncryptKey     string `yaml:"encryptKey" default:"6GbE8Qf2rkbYm9EecnxfVnBzXp8ZvWo6h3FDKxA88qv46U8ueRY4RJcbD7oMjCAzQLT"`
 
@@ -89,22 +64,18 @@ type config struct {
 	Database Database
 }
 
-func (conf *config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (conf *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	defaults.Set(conf)
-	type plain config
+	type plain Config
 	if err := unmarshal((*plain)(conf)); err != nil {
 		return err
 	}
 	return nil
 }
 
-func LoadConfig(configFile string) (*config, error) {
+func New(configFile string) (*Config, error) {
 
-	if Conf != nil {
-		return nil, errors.New("config already loaded")
-	}
-
-	config := &config{}
+	config := &Config{}
 
 	file, err := os.Open(configFile)
 	if err != nil {
@@ -125,9 +96,6 @@ func LoadConfig(configFile string) (*config, error) {
 	if config.Server.ClientUrl == "" {
 		config.Server.ClientUrl = config.Server.PublicURL
 	}
-
-	Conf = config
-	_ = Conf
 
 	return config, nil
 }

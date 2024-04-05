@@ -3,7 +3,6 @@ package migrations
 import (
 	"context"
 	"database/sql"
-	"goapp/config"
 
 	"github.com/pressly/goose/v3"
 )
@@ -15,7 +14,7 @@ func init() {
 func Up_20221129000002(ctx context.Context, txn *sql.Tx) error {
 
 	sql := "missing dialect"
-	switch dbType := config.Conf.Database.Type; dbType {
+	switch dbType := GetType(); dbType {
 	default:
 		sql = `
 			CREATE TABLE IF NOT EXISTS register_users
