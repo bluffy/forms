@@ -16,25 +16,6 @@ func JWTAuth(a *app.App) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 
-			/*
-				if r.URL.Query().Get("sess") != "" {
-					user := models.User{}
-					//user.Token = r.URL.Query().Get("sess")
-					a.SetUser(user)
-					next.ServeHTTP(w, r)
-					return
-				}
-			*/
-
-			/*
-				bearerToken := r.Header.Get("Authorization")
-				token := strings.Split(bearerToken, " ")
-				if len(token) != 2 {
-					w.WriteHeader(http.StatusUnauthorized)
-					fmt.Fprintf(w, `{"error": {"message": "%v"}}`, "missing token")
-					return
-				}
-			*/
 			token := TokenFromCookie(r)
 			if token == "" {
 				token = TokenFromHeader(r)
@@ -49,13 +30,15 @@ func JWTAuth(a *app.App) func(next http.Handler) http.Handler {
 				return
 			}
 
-			jwt := service.Jwt{
-				TokenLifeTime:        a.Conf().Server.TokenLifeTime,
-				TokenRefreshLifeTime: a.Conf().Server.TokenRefreshLifeTime,
-				TokenRefreshAllowd:   a.Conf().Server.TokenRefreshAllowed,
-				TokenKey:             a.Conf().Server.TokenKey,
-			}
-
+			/*
+				jwt := service.Jwt{
+					TokenLifeTime:        a.Conf().Server.TokenLifeTime,
+					TokenRefreshLifeTime: a.Conf().Server.TokenRefreshLifeTime,
+					TokenRefreshAllowd:   a.Conf().Server.TokenRefreshAllowed,
+					TokenKey:             a.Conf().Server.TokenKey,
+				}
+			*/
+			jwt := service.Jwt{}
 			user, _, err := jwt.ValidateToken(token)
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)

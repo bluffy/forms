@@ -24,7 +24,6 @@ type Locale struct {
 }
 
 type Lang struct {
-	Region        map[string]Region
 	Locale        map[string]Locale
 	DefaultLocale *Locale
 	Default       string
@@ -35,7 +34,6 @@ func AppLang(defaultLang string, langFS embed.FS) *Lang {
 	var files []string
 	var language Lang
 	language.Default = defaultLang
-	language.Region = make(map[string]Region)
 	language.Locale = make(map[string]Locale)
 
 	locale := &Locale{}
@@ -67,25 +65,12 @@ func AppLang(defaultLang string, langFS embed.FS) *Lang {
 	}
 
 	for _, file := range files {
-		f, _ := langFS.Open(file)
 		f2, _ := langFS.Open(file)
 		//b, _ := io.ReadAll(f)
 
-		d := yaml.NewDecoder(f)
 		d2 := yaml.NewDecoder(f2)
 
-		region := &Region{}
 		locale := &Locale{}
-
-		err := d.Decode(&region)
-		if err != nil {
-			log.Info("Error1 Lang Parsing: " + file)
-			log.Info(err)
-		} else {
-			code := file[:len(file)-len(filepath.Ext(file))]
-			code = filepath.Base(code)
-			language.Region[code] = *region
-		}
 
 		err = d2.Decode(&locale)
 		if err != nil {
@@ -105,7 +90,7 @@ func AppLang(defaultLang string, langFS embed.FS) *Lang {
 
 	}
 
-	_, ok := language.Region[language.Default]
+	_, ok := language.Locale[language.Default]
 	if !ok {
 		log.Fatal("Error in Lang: Default lang: " + language.Default + " not exists!")
 		return nil

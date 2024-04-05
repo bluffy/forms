@@ -32,11 +32,11 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	user, err := repository.GetUserByEmail(app.db, form.Email)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__user_not_exists, "Page_auth__error__user_not_exists", err)
+		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__user_not_exists, "", err)
 		return
 	}
 	if !tools.CheckPasswordHash(form.Password, user.Password) {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__wrong_password, "Page_auth__error__wrong_password", err)
+		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__wrong_password, "", err)
 		return
 	}
 
@@ -73,12 +73,12 @@ func (app *App) HandlerRgister(w http.ResponseWriter, r *http.Request) {
 	user, err := repository.GetUserByEmail(app.db, form.Email)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__user_already_registered, "Page_auth__error__user_already_registered", err)
+			app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__user_already_registered, "", err)
 			return
 		}
 	} else {
 		if user.ID != "" {
-			app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__user_already_registered, "Page_auth__error__user_already_registered", err)
+			app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__user_already_registered, "", err)
 			return
 		}
 

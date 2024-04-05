@@ -13,18 +13,18 @@ import (
 )
 
 type MysqlConf struct {
-	Username string
-	Password string
-	Database string
-	Host     string
-	Port     string
+	Username string `default:"goapp"`
+	Password string `default:"goapp"`
+	Database string `default:"goapp"`
+	Host     string `default:"localhost"`
+	Port     string `default:"3306"`
 }
 type SqliteConf struct {
 	Path string `default:"database.db"`
 }
 
 type Database struct {
-	Type   string
+	Type   string `default:"sqlite"`
 	Mysql  MysqlConf
 	Sqlite SqliteConf
 }
@@ -38,27 +38,27 @@ type Cors struct {
 }
 
 type Config struct {
-	Dev            bool
-	Debug          bool
+	Dev            bool   `default:"false"`
+	Debug          bool   `default:"false"`
 	ShowApiDoku    bool   `yaml:"show_api_doku" default:"false"`
 	Language       string `default:"en"`
 	UseEmbedClient bool   `yaml:"use_embed_client" default:"true"`
 	EncryptKey     string `yaml:"encryptKey" default:"6GbE8Qf2rkbYm9EecnxfVnBzXp8ZvWo6h3FDKxA88qv46U8ueRY4RJcbD7oMjCAzQLT"`
 
 	Server struct {
-		Port                 int           `yaml:"port" default:"4090"`
-		PortIntern           int           `yaml:"port_intern" default:"4091"`
-		Host                 string        `default:"127.0.0.1"`
-		PublicURL            string        `yaml:"public_url"`
-		ClientUrl            string        `yaml:"client_url"`
-		TimeoutRead          time.Duration `yaml:"timeout_read" default:"default=30s"`
-		TimeoutWrite         time.Duration `yaml:"timeout_write" default:"default=30s"`
-		TimeoutIdle          time.Duration `yaml:"timeout_idle" default:"default=45s"`
-		TokenKey             string        `yaml:"token_key"`
-		TokenLifeTime        int           `yaml:"token_life_time" default:"43200"`
-		TokenRefreshLifeTime int           `yaml:"token_refreshLifeTime" default:"43200"`
-		TokenRefreshAllowed  bool          `yaml:"token_refreshAllowed" default:"true"`
-		Cors                 Cors
+		Port         int           `yaml:"port" default:"4090"`
+		PortIntern   int           `yaml:"port_intern" default:"4091"`
+		Host         string        `default:"localhost"`
+		PublicURL    string        `yaml:"public_url"`
+		ClientUrl    string        `yaml:"client_url"`
+		TimeoutRead  time.Duration `yaml:"timeout_read" default:"default=30s"`
+		TimeoutWrite time.Duration `yaml:"timeout_write" default:"default=30s"`
+		TimeoutIdle  time.Duration `yaml:"timeout_idle" default:"default=45s"`
+		//TokenKey             string        `yaml:"token_key"`
+		//TokenLifeTime        int           `yaml:"token_life_time" default:"43200"`
+		//TokenRefreshLifeTime int           `yaml:"token_refreshLifeTime" default:"43200"`
+		//TokenRefreshAllowed  bool          `yaml:"token_refreshAllowed" default:"true"`
+		Cors Cors
 	}
 
 	Database Database
