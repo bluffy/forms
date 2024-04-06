@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"net/http"
 	"runtime"
+	"time"
 
 	"goapp/config"
 	"goapp/lang"
+	"goapp/models"
+	"goapp/repository"
 
 	"github.com/go-playground/validator/v10"
 	log "github.com/sirupsen/logrus"
@@ -25,6 +28,10 @@ type ErrResponse struct {
 		Message *string                 `json:"message,omitempty"`
 		Fields  *map[string]interface{} `json:"fields,omitempty"`
 	} `json:"error"`
+}
+
+type PageResponse struct {
+	Message *string `json:"message,omitempty"`
 }
 
 type App struct {
@@ -63,40 +70,25 @@ func (a *App) Conf() config.Config {
 	return *a.conf
 }
 
-func (a *App) JsonError(w http.ResponseWriter, status int, publicMessage string, loggingMessage string, err error) {
+func (a *App) JsonError(w http.ResponseWriter, status int, publicMessage string, err error, doLog bool, optionalLoggingMessage string) {
 	commonError := "Error on Server"
 	_, fn, line, _ := runtime.Caller(1)
-	if err != nil && a.conf.Debug {
+	if doLog || a.conf.Debug {
+
 		log.WithFields(log.Fields{
 			"jsonError":      true,
 			"func":           fn,
 			"line":           fmt.Sprintf("%d", line),
 			"publicMessage":  publicMessage,
-			"loggingMessage": loggingMessage,
+			"loggingMessage": optionalLoggingMessage,
 			"httpsStatus":    status,
 		}).Error(err)
-	} else {
-		if err != nil {
-			log.Warn(err)
-		}
-	}
 
-	if loggingMessage != "" {
-		log.Info("####### Error (TODOD write to sql)")
-		log.WithFields(log.Fields{
-			"jsonError":      true,
-			"func":           fn,
-			"line":           fmt.Sprintf("%d", line),
-			"publicMessage":  publicMessage,
-			"loggingMessage": loggingMessage,
-			"httpsStatus":    status,
-		}).Info(err)
-		log.Info("#######")
 	}
 
 	var appError ErrResponse
 	if publicMessage == "" {
-		msg := "Error on Server"
+		msg := a.GetLocale("").Text.Error__commen_server_error
 		appError.Error.Message = &msg
 	} else {
 		appError.Error.Message = &publicMessage
@@ -110,13 +102,38 @@ func (a *App) JsonError(w http.ResponseWriter, status int, publicMessage string,
 			"func":           fn,
 			"line":           fmt.Sprintf("%d", line),
 			"publicMessage":  publicMessage,
-			"loggingMessage": loggingMessage,
+			"loggingMessage": optionalLoggingMessage,
 		}).Error(err)
 		fmt.Fprintf(w, `{"error": {"message": "%s"}}`, commonError)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Write(errorJson)
+}
+
+func (a *App) errMessage(publicMessage string, err error, doLog bool, optionalLoggingMessage string) string {
+
+	if doLog || a.conf.Debug {
+		_, fn, line, _ := runtime.Caller(1)
+
+		//log.Info("####### Error (TODOD write to sql)")
+		log.WithFields(log.Fields{
+			"errMessage":     true,
+			"func":           fn,
+			"line":           fmt.Sprintf("%d", line),
+			"publicMessage":  publicMessage,
+			"loggingMessage": optionalLoggingMessage,
+		}).Error(err)
+
+	}
+
+	if publicMessage == "" {
+		msg := a.GetLocale("").Text.Error__commen_server_error
+		return msg
+	}
+
+	return publicMessage
+
 }
 
 func (a *App) GetLocale(lang string) *lang.Locale {
@@ -167,7 +184,7 @@ func (app *App) formErrors(lang string, err error, msg *string) *ErrResponse {
 
 func (app *App) checkForm(lang string, form interface{}, w http.ResponseWriter, r *http.Request, errorMessage *string) (stop bool) {
 	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__form_response_error, "Error__form_response_error", err)
+		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__form_response_error, err, false, "")
 		return true
 	}
 
@@ -175,12 +192,12 @@ func (app *App) checkForm(lang string, form interface{}, w http.ResponseWriter, 
 		log.Warn(err)
 		resp := app.formErrors(lang, err, errorMessage)
 		if resp == nil {
-			app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__form_response_error, "Error__form_response_error", err)
+			app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__form_response_error, err, false, "")
 			return true
 		}
 		respBody, err := json.Marshal(resp)
 		if err != nil {
-			app.JsonError(w, http.StatusInternalServerError, app.GetLocale("").Text.Error__json_create, "Error__json_create", err)
+			app.JsonError(w, http.StatusInternalServerError, app.GetLocale("").Text.Error__json_create, err, false, "")
 			return true
 		}
 		w.WriteHeader(http.StatusUnprocessableEntity)
@@ -189,4 +206,47 @@ func (app *App) checkForm(lang string, form interface{}, w http.ResponseWriter, 
 	}
 
 	return false
+}
+
+func (a *App) sendMail(adhoc bool, mailSubject string, mailText string, mailHtml string, to string) error {
+	var mail models.Mail
+	mail.Status = 0
+	mail.Text = &mailText
+	if mailHtml != "" {
+		mail.Html = &mailHtml
+	}
+	mail.Recipient = to
+	mail.Subject = mailSubject
+	mail.Sender = a.conf.Smtp.Sender
+	if adhoc {
+		mail.Status = models.SEND_STATUS_WAITING
+	}
+	dbMail, err := repository.CreateMail(a.db, &mail)
+	if err != nil {
+		//a.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__database_error, "Error__database_error in CreateMail", err)
+		return err
+	}
+
+	if adhoc {
+		serviceMail := dbMail.ToServiceMail()
+		logMsg, err := serviceMail.SendMail(&a.conf.Smtp)
+
+		if err != nil {
+			mailError := fmt.Sprintf("%v", err)
+			dbMail.ErrorMessage = logMsg
+			dbMail.Error = &mailError
+			dbMail.Status = models.SEND_STATUS_ERROR
+		} else {
+			dbMail.Status = models.SEND_STATUS_SENT
+			now := time.Now()
+			dbMail.SendAt = &now
+		}
+		_, errDB := repository.UpdateMail(a.db, dbMail)
+		if errDB != nil {
+			//app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__database_error, "Error__database_error in UpdateMail", err)
+			return err
+		}
+	}
+
+	return err
 }

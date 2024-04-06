@@ -3,15 +3,14 @@ package app
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
-	"time"
 
 	"goapp/models"
 	"goapp/repository"
 	"goapp/util/tools"
 
 	"gitea.com/go-chi/session"
+	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 )
 
@@ -34,11 +33,11 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	user, err := repository.GetUserByEmail(app.db, form.Email)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__user_not_exists, "", err)
+		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__user_not_exists, err, false, "")
 		return
 	}
 	if !tools.CheckPasswordHash(form.Password, user.Password) {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__wrong_password, "", err)
+		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__wrong_password, err, false, "")
 		return
 	}
 
@@ -47,7 +46,7 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	_, err = session.RegenerateSession(w, r)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__session_regeneration, "Page_auth__error__session_regeneration", err)
+		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__session_regeneration, err, false, "")
 		return
 	}
 
@@ -75,72 +74,125 @@ func (app *App) HandlerRgister(w http.ResponseWriter, r *http.Request) {
 	user, err := repository.GetUserByEmail(app.db, form.Email)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__user_already_registered, "", err)
+			app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__user_already_registered, err, false, "")
 			return
 		}
 	} else {
 		if user.ID != "" {
-			app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__user_already_registered, "", err)
+			app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__user_already_registered, err, false, "")
 			return
 		}
 
 	}
 	registerUser, err := form.ToModel()
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__commen_server_error, "Error__commen_server_error", err)
+		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__commen_server_error, err, false, "")
 		return
 	}
 	registerUser, err = repository.CreateRegisterUser(app.db, registerUser)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__database_error, "Error__database_error", err)
+		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__database_error, err, false, "")
 		return
 	}
 
-	mail_text := "register link: " + registerUser.ID
-	var mail models.Mail
-	mail.Status = 0
-	mail.Text = &mail_text
-	mail.Recipient = registerUser.Email
-	mail.Subject = "New User"
-	mail.Sender = app.conf.Smtp.Sender
-	mail.Status = models.SEND_STATUS_WAITING
-	dbMail, err := repository.CreateMail(app.db, &mail)
+	userLink := registerUser.ToLinkModel()
+
+	userLinkBytes, err := json.Marshal(userLink)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__database_error, "Error__database_error in CreateMail", err)
+		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__json_encode, err, false, "")
 		return
 	}
 
-	serviceMail := dbMail.ToServiceMail()
-	logMsg, err := serviceMail.SendMail(&app.conf.Smtp)
-
+	userLinkEncrypted, err := tools.EncryptBase64(string(userLinkBytes), app.conf.EncryptKey)
 	if err != nil {
-		mailError := fmt.Sprintf("%v", err)
-		dbMail.ErrorMessage = logMsg
-		dbMail.Error = &mailError
-		dbMail.Status = models.SEND_STATUS_ERROR
-	} else {
-		dbMail.Status = models.SEND_STATUS_SENT
-		now := time.Now()
-		dbMail.SendAt = &now
-	}
-	_, errDB := repository.UpdateMail(app.db, dbMail)
-	if errDB != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__database_error, "Error__database_error in UpdateMail", err)
-		return
+		app.JsonError(w, http.StatusUnprocessableEntity, "encyrption error", err, false, "")
 	}
 
+	link := app.conf.Server.PublicURL + "/p/register/" + userLinkEncrypted
+	err = app.sendMail(true, "New Registration", "register link: "+link, "", registerUser.Email)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, "Register Mail not Sent", "", err)
+		app.JsonError(w, http.StatusUnprocessableEntity, "Register Mail not Sent", err, false, "")
 		return
 	}
 
-	// SEND MAIL
-
-	var response models.UserRegisterResponse
-	response.Message = app.GetLocale("").Text.Page_auth__regsitering_success
+	var response PageResponse
+	response.Message = &app.GetLocale("").Text.Page_auth__regsitering_success
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__database_error, "Error__json_encode", err)
+		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__json_encode, err, false, "")
 	}
+
+}
+
+// HandlerLogin  godoc
+// @Tags         public
+// @Description  login
+// @Accept       json
+// @Produce      json
+// @Param        link  path   string  true  "link encoded"
+// @Success      200 {object} models.RegisterUserForm
+// @Failure      401 {object} models.AppError
+// @Failure      422 {object} models.AppError
+// @Failure      500 {object} models.AppError "Response JSON"
+// @Router       /bl-api/page/v1/register [get]
+func (app *App) HandlerRgisterLink(w http.ResponseWriter, r *http.Request) {
+
+	link := chi.URLParam(r, "link")
+
+	if link == "" {
+		w.Write([]byte(app.errMessage("param link is missing", nil, false, "")))
+		return
+	}
+
+	linkDec, err := tools.DecryptBase64(link, app.conf.EncryptKey)
+	if err != nil {
+		w.Write([]byte(app.errMessage(app.GetLocale("").Text.Page.Auth.Register_link_is_invalid, nil, false, "")))
+		return
+	}
+
+	linkUser := &models.RegisterUserLink{}
+
+	err = json.Unmarshal([]byte(linkDec), linkUser)
+	if err != nil {
+		w.Write([]byte(app.errMessage(app.GetLocale("").Text.Page.Auth.Register_link_is_invalid, nil, false, "")))
+		return
+	}
+
+	dbRegisterUser, err := repository.ReadRegisterUser(app.db, linkUser.ID)
+	if err != nil {
+		w.Write([]byte(app.errMessage(app.GetLocale("").Text.Page.Auth.Register_link_is_invalid, nil, false, "")))
+		return
+	}
+	if dbRegisterUser.UpdatedAt != linkUser.CreatedAt {
+		w.Write([]byte(app.errMessage(app.GetLocale("").Text.Page.Auth.Register_link_is_expired, nil, false, "")))
+
+		return
+	}
+
+	dbUser, err := repository.GetUserByEmail(app.db, dbRegisterUser.Email)
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			w.Write([]byte(app.errMessage(app.GetLocale("").Text.Error__database_error, nil, false, "")))
+
+			return
+		}
+	}
+
+	if dbUser != nil && dbUser.Email == dbRegisterUser.Email {
+		w.Write([]byte(app.errMessage(app.GetLocale("").Text.Page.Auth.Register_user_already_registered, nil, false, "")))
+
+		return
+	}
+
+	dbUser = dbRegisterUser.ToUserModel()
+	_, err = repository.CreateUser(app.db, dbUser)
+	if err != nil {
+		w.Write([]byte(app.errMessage(app.GetLocale("").Text.Error__database_error, nil, false, "")))
+
+		return
+	}
+	_ = repository.DeleteRegisterUser(app.db, dbRegisterUser.ID)
+
+	w.Write([]byte(app.errMessage(app.GetLocale("").Text.Page.Auth.Message_user_created, nil, false, "")))
 
 }
 

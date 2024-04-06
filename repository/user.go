@@ -25,8 +25,8 @@ func GetUserByEmail(db *gorm.DB, email string) (*models.User, error) {
 	return user, nil
 }
 
-func ReadRegisterUser(db *gorm.DB, id string) (*models.RegisterUserForm, error) {
-	user := &models.RegisterUserForm{}
+func ReadRegisterUser(db *gorm.DB, id string) (*models.RegisterUser, error) {
+	user := &models.RegisterUser{}
 
 	if err := db.Where("id = ?", id).First(&user).Error; err != nil {
 		return nil, err
@@ -34,7 +34,24 @@ func ReadRegisterUser(db *gorm.DB, id string) (*models.RegisterUserForm, error) 
 	return user, nil
 }
 
+func DeleteRegisterUser(db *gorm.DB, id string) error {
+	user := &models.RegisterUser{}
+	if err := db.Where("id = ?", id).Delete(&user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func CreateRegisterUser(db *gorm.DB, obj *models.RegisterUser) (*models.RegisterUser, error) {
+	if obj.ID == "" {
+		obj.ID = ksuid.New().String()
+	}
+	if err := db.Create(obj).Error; err != nil {
+		return nil, err
+	}
+	return obj, nil
+}
+func CreateUser(db *gorm.DB, obj *models.User) (*models.User, error) {
 	if obj.ID == "" {
 		obj.ID = ksuid.New().String()
 	}

@@ -239,7 +239,7 @@ func Server(appConfig *config.Config, opts ArgOptions, args []string) {
 	if appConfig.Server.PublicURL != appConfig.Server.ClientUrl {
 		log.Infof("Client URL: %v", appConfig.Server.PublicURL)
 	}
-	log.Infof("API Doku: %v", appConfig.Server.PublicURL+"bl-api/")
+	log.Infof("API Doku: %v", appConfig.Server.PublicURL+"/bl-api/")
 	log.Info("##########################")
 	// create a channel to subscribe ctrl+c/SIGINT event
 	sigInterruptChannel := make(chan os.Signal, 1)

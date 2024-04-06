@@ -2,8 +2,16 @@ package locale
 
 type Text struct {
 	Welcome string `default:"Welcome"`
+	Page    struct {
+		Auth struct {
+			Register_link_is_invalid         string `default:"the link is invalid or expired"`
+			Register_link_is_expired         string `default:"the link is expired"`
+			Register_user_already_registered string `default:"user alread exists"`
+			Message_user_created             string `default:"successful, you can login now!"`
+		}
+	}
 
-	Error__commen_server_error string `default:"Server Error"`
+	Error__commen_server_error string `default:"Error from Server"`
 	Error__database_error      string `default:"Server Database Error"`
 	Error__json_create         string `default:"Server Error: JSON Create"`
 	Error__json_encode         string `default:"Server Error: Encode"`

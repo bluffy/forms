@@ -3,23 +3,23 @@ package models
 import (
 	"time"
 
-	"goapp/adapter/gorm"
+	g "goapp/adapter/gorm"
 	"goapp/util/tools"
 )
 
 type Users []*User
 type User struct {
-	gorm.ModelUID
-	Email              string
-	Password           string
-	Newsletter         bool
-	FirstName          string
-	LastName           string
-	IsAdmin            bool
-	NewPasswordRequest *time.Time
+	g.ModelUID
+	Email      string
+	Password   string
+	Newsletter bool
+	FirstName  string
+	LastName   string
+	IsAdmin    bool
+	//NewPasswordRequest *time.Time
 }
 type RegisterUser struct {
-	gorm.ModelUID
+	g.ModelUID
 	Email      string
 	Password   string
 	Newsletter bool
@@ -51,6 +51,11 @@ type RegisterUserForm struct {
 	Password   string `json:"password" form:"required,min=5,max=64"`
 }
 
+type RegisterUserLink struct {
+	ID        string
+	CreatedAt time.Time
+}
+
 func (u User) ToDto() *UserDto {
 	return &UserDto{
 		ID:      u.ID,
@@ -74,6 +79,34 @@ func (f *RegisterUserForm) ToModel() (*RegisterUser, error) {
 		LastName:   f.LastName,
 		Newsletter: f.Newsletter,
 	}, nil
+}
+
+func (f *RegisterUser) ToLinkModel() *RegisterUserLink {
+
+	user := &RegisterUserLink{
+		ID:        f.ID,
+		CreatedAt: f.CreatedAt,
+	}
+	return user
+}
+func (f *RegisterUser) ToUserModel() *User {
+
+	user := &User{
+		Email:     f.Email,
+		Password:  f.Password,
+		FirstName: f.FirstName,
+		LastName:  f.LastName,
+	}
+	return user
+}
+
+func (f *RegisterUserLink) ToModel() *RegisterUser {
+
+	user := &RegisterUser{}
+	user.ID = f.ID
+	user.CreatedAt = f.CreatedAt
+
+	return user
 }
 
 /*

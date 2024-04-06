@@ -147,6 +147,10 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 		})
 	*/
 
+	r.Route("/p", func(r chi.Router) {
+		r.Get("/register/{link}", a.HandlerRgisterLink)
+	})
+
 	r.Route("/bl-api", func(r chi.Router) {
 		if a.Conf().Dev || a.Conf().ShowApiDoku {
 			r.Mount("/", httpSwagger.WrapHandler)

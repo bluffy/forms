@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"io"
 	"reflect"
@@ -93,7 +94,15 @@ func EncryptBase64(plaintext string, key string) (ciphertext string, err error) 
 		return "", err
 	}
 
-	return base64.StdEncoding.EncodeToString(text), nil
+	return base64.RawURLEncoding.EncodeToString(text), nil
+}
+func EncryptHex(plaintext string, key string) (ciphertext string, err error) {
+	text, err := Encrypt([]byte(plaintext), []byte(key), "")
+	if err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(text), nil
 }
 
 // Decrypt decrypts data using 256-bit AES-GCM.  This both hides the content of
@@ -123,7 +132,7 @@ func Decrypt(ciphertext []byte, key []byte) (plaintext []byte, err error) {
 }
 
 func DecryptBase64(ciphertext string, key string) (plaintext string, err error) {
-	sDec, _ := base64.StdEncoding.DecodeString(string(ciphertext))
+	sDec, _ := base64.RawURLEncoding.DecodeString(string(ciphertext))
 	if err != nil {
 		return "", err
 	}
@@ -132,9 +141,19 @@ func DecryptBase64(ciphertext string, key string) (plaintext string, err error) 
 	if err != nil {
 		return "", err
 	}
-
 	return string(text), nil
+}
+func DecryptHex(ciphertext string, key string) (plaintext string, err error) {
+	sDec, _ := hex.DecodeString(string(ciphertext))
+	if err != nil {
+		return "", err
+	}
 
+	text, err := Decrypt(sDec, []byte(key))
+	if err != nil {
+		return "", err
+	}
+	return string(text), nil
 }
 
 func HashPassword(password string) (string, error) {

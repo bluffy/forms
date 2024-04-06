@@ -17,7 +17,7 @@ func SessionCheck(a *app.App) func(next http.Handler) http.Handler {
 			sessStore := session.GetSession(r)
 			user_id := sessStore.Get("user_id")
 			if user_id == nil {
-				a.JsonError(w, http.StatusUnauthorized, a.GetLocale("").Text.Session__error_sessen_not_exists_or_expired, "", nil)
+				a.JsonError(w, http.StatusUnauthorized, a.GetLocale("").Text.Session__error_sessen_not_exists_or_expired, nil, false, "")
 				return
 			}
 

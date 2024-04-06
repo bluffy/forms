@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"os"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -25,7 +26,7 @@ type Config struct {
 		Port         int           `yaml:"port" default:"4090"`
 		PortIntern   int           `yaml:"port_intern" default:"4091"`
 		Host         string        `default:"localhost"`
-		PublicURL    string        `yaml:"public_url"`
+		PublicURL    string        `yaml:"public_url" default:"http://localhost:4090"`
 		ClientUrl    string        `yaml:"client_url"`
 		TimeoutRead  time.Duration `yaml:"timeout_read" default:"default=30s"`
 		TimeoutWrite time.Duration `yaml:"timeout_write" default:"default=30s"`
@@ -99,9 +100,12 @@ func New(configFile string) (*Config, error) {
 	if config.Server.PublicURL == "" {
 		return nil, errors.New("config missing: server.public_url (https://domain.com/)")
 	}
+	config.Server.PublicURL = strings.TrimRight(config.Server.PublicURL, "/")
+
 	if config.Server.ClientUrl == "" {
 		config.Server.ClientUrl = config.Server.PublicURL
 	}
+	config.Server.ClientUrl = strings.TrimRight(config.Server.ClientUrl, "/")
 
 	return config, nil
 }
