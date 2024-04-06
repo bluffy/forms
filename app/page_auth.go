@@ -12,7 +12,6 @@ import (
 	"goapp/util/tools"
 
 	"gitea.com/go-chi/session"
-	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -103,8 +102,8 @@ func (app *App) HandlerRgister(w http.ResponseWriter, r *http.Request) {
 	mail.Text = &mail_text
 	mail.Recipient = registerUser.Email
 	mail.Subject = "New User"
-	mail.Sender = "dev@bluffy.de"
-	mail.Status = 2 // wird gleich gesendet!!!
+	mail.Sender = app.conf.Smtp.Sender
+	mail.Status = models.SEND_STATUS_WAITING
 	dbMail, err := repository.CreateMail(app.db, &mail)
 	if err != nil {
 		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__database_error, "Error__database_error in CreateMail", err)
@@ -118,13 +117,9 @@ func (app *App) HandlerRgister(w http.ResponseWriter, r *http.Request) {
 		mailError := fmt.Sprintf("%v", err)
 		dbMail.ErrorMessage = logMsg
 		dbMail.Error = &mailError
-
-		log.Printf("%+v\n", app.conf.Smtp)
-		log.Debugf("%+v\n", app.conf.Smtp)
-		dbMail.Status = 9
-
+		dbMail.Status = models.SEND_STATUS_ERROR
 	} else {
-		dbMail.Status = 3
+		dbMail.Status = models.SEND_STATUS_SENT
 		now := time.Now()
 		dbMail.SendAt = &now
 	}

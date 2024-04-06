@@ -7,6 +7,13 @@ import (
 	"time"
 )
 
+const (
+	SEND_STATUS_NEW     int = 0
+	SEND_STATUS_WAITING int = 1
+	SEND_STATUS_SENT    int = 2
+	SEND_STATUS_ERROR   int = 9
+)
+
 type Mails []*Mail
 type Mail struct {
 	gorm.ModelUID
