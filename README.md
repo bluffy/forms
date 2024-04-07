@@ -25,7 +25,6 @@
      https://github.com/SushritPasupuleti/Go-Chi-Boilerplate/tree/main
 
 
- goi18n extract --outdir i18n -format yaml 
- goi18n merge  --outdir i18n  -format yaml i18n/active.*.yaml 
- goi18n merge  --outdir i18n  -format yaml i18n/active.*.yaml i18n/translate.*.yaml 
-
+goi18n extract --outdir i18n -format yaml 
+goi18n merge  --outdir i18n  -format yaml i18n/active.*.yaml 
+goi18n merge  --outdir i18n  -format yaml i18n/active.*.yaml i18n/translate.*.yaml 

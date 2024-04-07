@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 
 	"goapp/models"
@@ -139,19 +140,36 @@ func (app *App) HandlerRgisterLink(w http.ResponseWriter, r *http.Request) {
 
 	localizer := app.GetLocalizer(r, "de")
 
-	msg := localizer.MustLocalize(&i18n.LocalizeConfig{
+	msg, _ := localizer.Localize(&i18n.LocalizeConfig{
 		TemplateData: map[string]string{
 			"Name": "Maio",
 		},
 		DefaultMessage: &i18n.Message{
-			ID:    "HelloWorld",
-			Other: "Hello {{.Name}}!",
+			ID:    "HelloWorld1",
+			Other: "Hello {{.Names}}!",
 		},
 	})
 
+	/*
+		test, err := localizer.(&i18n.Message{
+			ID: "HelloWorld1",
+
+
+		})
+
+	*/
+
+	log.Print("###########")
+	log.Print(msg)
+	/*
+		if !errors.Is(err,i18n) {
+			w.Write([]byte(app.errMessage(app.GetLocale("").Text.Page.Auth.Register_link_is_invalid, nil, false, "")))
+			return
+		}
+	*/
 	w.Write([]byte(msg))
 
-	link := chi.URLParam(r, "link")
+	link := chi.URLParam(r, "test")
 
 	if link == "" {
 		w.Write([]byte(app.errMessage("param link is missing", nil, false, "")))
