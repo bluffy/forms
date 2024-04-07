@@ -1,0 +1,3 @@
+HelloWorld:
+  hash: sha1-87e43d4100389857990efe6092c4aaa5df3ad17d
+  other: Hallo2 {{.Name}}!

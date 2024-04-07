@@ -11,6 +11,7 @@ import (
 
 	"gitea.com/go-chi/session"
 	"github.com/go-chi/chi/v5"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"gorm.io/gorm"
 )
 
@@ -135,6 +136,20 @@ func (app *App) HandlerRgister(w http.ResponseWriter, r *http.Request) {
 // @Failure      500 {object} models.AppError "Response JSON"
 // @Router       /bl-api/page/v1/register [get]
 func (app *App) HandlerRgisterLink(w http.ResponseWriter, r *http.Request) {
+
+	localizer := app.GetLocalizer(r, "de")
+
+	msg := localizer.MustLocalize(&i18n.LocalizeConfig{
+		TemplateData: map[string]string{
+			"Name": "Maio",
+		},
+		DefaultMessage: &i18n.Message{
+			ID:    "HelloWorld",
+			Other: "Hello {{.Name}}!",
+		},
+	})
+
+	w.Write([]byte(msg))
 
 	link := chi.URLParam(r, "link")
 

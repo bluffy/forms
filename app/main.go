@@ -14,6 +14,7 @@ import (
 	"goapp/repository"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -39,6 +40,7 @@ type App struct {
 	lang      *lang.Lang
 	db        *gorm.DB
 	conf      *config.Config
+	bundle    *i18n.Bundle
 }
 
 func New(
@@ -46,6 +48,7 @@ func New(
 	lang *lang.Lang,
 	db *gorm.DB,
 	config *config.Config,
+	bundle *i18n.Bundle,
 ) *App {
 
 	return &App{
@@ -53,6 +56,7 @@ func New(
 		lang:      lang,
 		db:        db,
 		conf:      config,
+		bundle:    bundle,
 	}
 }
 
@@ -70,6 +74,11 @@ func (a *App) Conf() config.Config {
 	return *a.conf
 }
 
+func (a *App) GetLocalizer(r *http.Request, lang string) *i18n.Localizer {
+	accept := r.Header.Get("Accept-Language")
+	return i18n.NewLocalizer(a.bundle, lang, accept)
+
+}
 func (a *App) JsonError(w http.ResponseWriter, status int, publicMessage string, err error, doLog bool, optionalLoggingMessage string) {
 	commonError := "Error on Server"
 	_, fn, line, _ := runtime.Caller(1)

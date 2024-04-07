@@ -11,7 +11,10 @@ import (
 	"time"
 
 	"github.com/jessevdk/go-flags"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/segmentio/ksuid"
+	"golang.org/x/text/language"
+	"gopkg.in/yaml.v2"
 
 	dbConn "goapp/adapter/gorm"
 	"goapp/app"
@@ -58,11 +61,41 @@ var publicFS embed.FS
 //go:embed data/*
 var dataFS embed.FS
 
+// If use go:embed
+//
+
+//go:embed i18n/active.*.yaml
+var LocaleFS embed.FS
+
 func main() {
 	var opts ArgOptions
 	var err error
 	var args []string
 	var configFile = "config.yaml"
+
+	bundle := i18n.NewBundle(language.English)
+	bundle.RegisterUnmarshalFunc("yaml", yaml.Unmarshal)
+	/*
+		_, err = bundle.LoadMessageFileFS(LocaleFS, "i18n/active.de.yaml")
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+	*/
+
+	/*
+		localizer := i18n.NewLocalizer(bundle, "de")
+
+		fmt.Println(localizer.MustLocalize(&i18n.LocalizeConfig{
+			TemplateData: map[string]string{
+				"Name": "Maio",
+			},
+			DefaultMessage: &i18n.Message{
+				ID:    "HelloWorld",
+				Other: "Hello {{.Name}}!",
+			},
+		}))
+	*/
 
 	log.SetFormatter(&log.TextFormatter{
 		ForceColors:   true,
@@ -128,7 +161,7 @@ func main() {
 		return
 	}
 
-	Server(appConfig, opts, args)
+	Server(appConfig, bundle, opts, args)
 }
 
 // @title  app server
@@ -146,7 +179,7 @@ func main() {
 // @name Authorization
 // @description Type "Token" followed by a space and JWT token.
 // Server function creates start Listenen Server
-func Server(appConfig *config.Config, opts ArgOptions, args []string) {
+func Server(appConfig *config.Config, bundle *i18n.Bundle, opts ArgOptions, args []string) {
 
 	var db *gorm.DB
 	var err error
@@ -192,7 +225,7 @@ func Server(appConfig *config.Config, opts ArgOptions, args []string) {
 	addressApp := fmt.Sprintf(":%d", appConfig.Server.Port)
 	addressApi := fmt.Sprintf(":%d", appConfig.Server.PortIntern)
 
-	application := app.New(validator, appLang, db, appConfig)
+	application := app.New(validator, appLang, db, appConfig, bundle)
 
 	appRouter := router.NewApp(application, publicFS)
 	internRouter := router.NewIntern(application, publicFS)
