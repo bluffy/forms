@@ -1,3 +1,6 @@
-HelloWorld2:
-  hash: sha1-87e43d4100389857990efe6092c4aaa5df3ad17d
-  other: Hallo {{.Name}}!
+Api.HandlerRegister.Error.ConfirmationMailNotSend:
+  hash: sha1-261e65acdd20ec877f52e4a8b65edd409422ccf2
+  other: no confirmation email could be sent
+Api.HandlerRegister.Error.UserAlreadyRegistered:
+  hash: sha1-d5d968b8708e2dd148502eb544ae7407834f7c7f
+  other: user alread exists

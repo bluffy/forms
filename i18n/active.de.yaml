@@ -1,3 +1,35 @@
-HelloWorld2:
-  hash: sha1-87e43d4100389857990efe6092c4aaa5df3ad17d
-  other: Hallo {{.Name}}!
+FormsValidator.AlphaSpace:
+  hash: sha1-9485d190820278d9307b8772edaeaa39fa3f0a01
+  other: darf nur Buchstaben und Leerzeichen enthalten
+FormsValidator.Date:
+  hash: sha1-49f041eba73bcc1892f33fe0d3237aeeb14e897d
+  other: Es muss ein gültiges Datum sein
+FormsValidator.Default:
+  hash: sha1-717bc41ece43b68e3097b5d1c05aa06b04adddfb
+  other: 'Stimmt etwas nicht: {{.Tag}}'
+FormsValidator.Email:
+  hash: sha1-14f5d27b5d854703a7ff9ed77188d3e7c5c95d33
+  other: muss eine gültige E-Mail-Adresse sein
+FormsValidator.Max:
+  hash: sha1-c10e345b4c81d5b19e62617791f552997b5d3f12
+  other: darf maximal {{.Chars}} Zeichen lang sein
+FormsValidator.Min:
+  hash: sha1-7663e242715696973e6c62374aea142315fc2f86
+  other: muss mindestens {{.Chars}} Zeichen lang sein
+FormsValidator.Required:
+  hash: sha1-4e606f72f34340a2e2e0c4e8076355c3cf0937d8
+  other: Pflichtfeld
+FormsValidator.URL:
+  hash: sha1-1f26c7d9f6a6fbe270a63fa22c9a6cfcc976f818
+  other: muss eine gültige URL sein
+HelloWorld1:
+  hash: sha1-121e81f3e54447e846dcd93f800d2030245a5db9
+  other: Hallo {{.Names}}!
+HelloWorld6:
+  description: beschreibung
+  hash: sha1-30d9c44fd59fb553995b6ccd75f446f979c8c1d0
+  one: 'Hallo 1 {{.PluralCount}} '
+  other: 'Hell  '
+Server.CommonError:
+  hash: sha1-41f6efd336ef77d73c53e15dc2b22430508e45f6
+  other: Error on Server

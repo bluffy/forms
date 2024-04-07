@@ -1,1 +1,19 @@
-HelloWorld2: Hello {{.Name}}!
+Api.HandlerRegister.Error.ConfirmationMailNotSend: no confirmation email could be
+  sent
+Api.HandlerRegister.Error.UserAlreadyRegistered: user alread exists
+FormsValidator.AlphaSpace: can only contain alphabetic and space characters
+FormsValidator.Date: imust be a valid date
+FormsValidator.Default: 'something wrong: {{.Tag}}'
+FormsValidator.Email: must be a valid email addres
+FormsValidator.Max: must be a maximum of {{.Chars}} in length
+FormsValidator.Min: must be a minimum of {{.Chars}} in length
+FormsValidator.Required: is required
+FormsValidator.URL: must be a valid URL
+HelloWorld1: Hello {{.Names}}!
+HelloWorld6:
+  description: beschreibung
+  few: ein ppar  !
+  many: 'hallo viele '
+  one: 'Hallo 1 {{.PluralCount}} '
+  other: 'Hell  '
+Server.CommonError: Error on Server

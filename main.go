@@ -61,6 +61,9 @@ var publicFS embed.FS
 //go:embed data/*
 var dataFS embed.FS
 
+//go:embed templates/*
+var templatesFS embed.FS
+
 // If use go:embed
 //
 
@@ -80,27 +83,6 @@ func main() {
 		log.Fatal(err)
 		return
 	}
-	/*
-		_, err = bundle.LoadMessageFileFS(LocaleFS, "i18n/active.de.yaml")
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
-	*/
-
-	/*
-		localizer := i18n.NewLocalizer(bundle, "de")
-
-		fmt.Println(localizer.MustLocalize(&i18n.LocalizeConfig{
-			TemplateData: map[string]string{
-				"Name": "Maio",
-			},
-			DefaultMessage: &i18n.Message{
-				ID:    "HelloWorld",
-				Other: "Hello {{.Name}}!",
-			},
-		}))
-	*/
 
 	log.SetFormatter(&log.TextFormatter{
 		ForceColors:   true,
@@ -230,7 +212,7 @@ func Server(appConfig *config.Config, bundle *i18n.Bundle, opts ArgOptions, args
 	addressApp := fmt.Sprintf(":%d", appConfig.Server.Port)
 	addressApi := fmt.Sprintf(":%d", appConfig.Server.PortIntern)
 
-	application := app.New(validator, appLang, db, appConfig, bundle)
+	application := app.New(validator, appLang, db, appConfig, bundle, &templatesFS)
 
 	appRouter := router.NewApp(application, publicFS)
 	internRouter := router.NewIntern(application, publicFS)

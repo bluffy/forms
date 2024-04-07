@@ -98,6 +98,7 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 
 		MaxAge: a.Conf().Server.Cors.MaxAge, // Maximum value not ignored by any of major browsers
 	}))
+	r.Use(middleware.SetSession(a))
 
 	r.HandleFunc("/healthz", a.HanlderHealth)
 
@@ -157,17 +158,15 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 		}
 		r.Route("/page", func(r chi.Router) {
 			r.Route("/v1", func(r chi.Router) {
-
+				r.Group(func(r chi.Router) {
+					r.Use(middleware.ContentTypeJson)
+					r.Use(middleware.CheckUserLogin(a))
+					r.Get("/", a.PageIndex)
+				})
 				r.Group(func(r chi.Router) {
 					r.Use(middleware.ContentTypeJson)
 					r.Post("/login", a.HandlerLogin)
-					r.Post("/register", a.HandlerRgister)
-				})
-
-				r.Group(func(r chi.Router) {
-					r.Use(middleware.ContentTypeJson)
-					r.Use(middleware.SessionCheck(a))
-					r.Get("/", a.PageIndex)
+					r.Post("/register", a.HandlerRegister)
 				})
 
 			})

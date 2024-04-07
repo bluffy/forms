@@ -3,8 +3,8 @@ package app
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
+	"text/template"
 
 	"goapp/models"
 	"goapp/repository"
@@ -28,18 +28,28 @@ import (
 // @Failure      500 {object} models.AppError "Response JSON"
 // @Router       /bl-api/page/v1/login [post]
 func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
+	localizer := GetLocalizer(r)
+
 	form := &models.UserLoginForm{}
-	if app.checkForm("", form, w, r, nil) {
+	if app.checkForm(localizer, form, w, r, nil) {
 		return
 	}
 
+	msgUserPasswordNotMatched, _ := localizer.Localize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID:    "Api.HandlerLogin.Error.UserNotExits",
+			Other: "user & password not matched",
+		},
+	})
+
 	user, err := repository.GetUserByEmail(app.db, form.Email)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__user_not_exists, err, false, "")
+
+		app.JsonError(w, http.StatusUnprocessableEntity, msgUserPasswordNotMatched, err, false, "")
 		return
 	}
 	if !tools.CheckPasswordHash(form.Password, user.Password) {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__wrong_password, err, false, "")
+		app.JsonError(w, http.StatusUnprocessableEntity, msgUserPasswordNotMatched, err, false, "")
 		return
 	}
 
@@ -48,7 +58,7 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	_, err = session.RegenerateSession(w, r)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__session_regeneration, err, false, "")
+		app.JsonError(w, http.StatusUnprocessableEntity, DEFAULT_MESSAGE_COMMON_SERVER_ERROR, err, true, "session.RegenerateSession")
 		return
 	}
 
@@ -67,33 +77,43 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 // @Failure      422 {object} models.AppError
 // @Failure      500 {object} models.AppError "Response JSON"
 // @Router       /bl-api/page/v1/register [post]
-func (app *App) HandlerRgister(w http.ResponseWriter, r *http.Request) {
+func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 
+	localizer := GetLocalizer(r)
 	form := &models.RegisterUserForm{}
-	if app.checkForm("", form, w, r, nil) {
+	if app.checkForm(localizer, form, w, r, nil) {
 		return
 	}
+
+	msgUserExists, _ := localizer.Localize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID:    "Api.HandlerRegister.Error.UserAlreadyRegistered",
+			Other: "user alread exists",
+		},
+	})
+
 	user, err := repository.GetUserByEmail(app.db, form.Email)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__user_already_registered, err, false, "")
+			app.JsonError(w, http.StatusUnprocessableEntity, msgUserExists, err, false, "")
 			return
 		}
 	} else {
 		if user.ID != "" {
-			app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__user_already_registered, err, false, "")
+			app.JsonError(w, http.StatusUnprocessableEntity, msgUserExists, err, false, "")
+
 			return
 		}
 
 	}
 	registerUser, err := form.ToModel()
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__commen_server_error, err, false, "")
+		app.JsonError(w, http.StatusUnprocessableEntity, GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), err, true, "form.ToModel()")
 		return
 	}
 	registerUser, err = repository.CreateRegisterUser(app.db, registerUser)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__database_error, err, false, "")
+		app.JsonError(w, http.StatusUnprocessableEntity, GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), err, false, "CreateRegisterUser(app.db, registerUser)")
 		return
 	}
 
@@ -101,26 +121,32 @@ func (app *App) HandlerRgister(w http.ResponseWriter, r *http.Request) {
 
 	userLinkBytes, err := json.Marshal(userLink)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__json_encode, err, false, "")
+		app.JsonError(w, http.StatusUnprocessableEntity, GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), err, true, "json.Marshal(userLink)")
 		return
 	}
 
 	userLinkEncrypted, err := tools.EncryptBase64(string(userLinkBytes), app.conf.EncryptKey)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, "encyrption error", err, false, "")
+		app.JsonError(w, http.StatusUnprocessableEntity, GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), err, true, "tools.EncryptBase64(string(userLinkBytes)")
 	}
 
 	link := app.conf.Server.PublicURL + "/p/register/" + userLinkEncrypted
 	err = app.sendMail(true, "New Registration", "register link: "+link, "", registerUser.Email)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, "Register Mail not Sent", err, false, "")
+		msg, _ := localizer.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:    "Api.HandlerRegister.Error.ConfirmationMailNotSend",
+				Other: "no confirmation email could be sent",
+			},
+		})
+		app.JsonError(w, http.StatusUnprocessableEntity, msg, err, false, "")
 		return
 	}
 
 	var response PageResponse
 	response.Message = &app.GetLocale("").Text.Page_auth__regsitering_success
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__json_encode, err, false, "")
+		app.JsonError(w, http.StatusUnprocessableEntity, GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), err, false, "")
 	}
 
 }
@@ -139,37 +165,17 @@ func (app *App) HandlerRgister(w http.ResponseWriter, r *http.Request) {
 func (app *App) HandlerRgisterLink(w http.ResponseWriter, r *http.Request) {
 
 	localizer := app.GetLocalizer(r, "de")
+	//var tmplFile = "templates/page/default.html"
+	//tmpl, err := template.New(tmplFile).ParseFS(app.templateFS, tmplFile)
+	view := template.Must(template.ParseFS(app.templateFS, "templates/page/index.html"))
 
-	msg, _ := localizer.Localize(&i18n.LocalizeConfig{
-		TemplateData: map[string]string{
-			"Name": "Maio",
-		},
-		DefaultMessage: &i18n.Message{
-			ID:    "HelloWorld1",
-			Other: "Hello {{.Names}}!",
-		},
-	})
+	err := view.ExecuteTemplate(w, "index.html", nil)
+	if err != nil {
+		w.Write([]byte(app.errMessage(GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), nil, false, "view.ExecuteTemplate(w,\"index.html\", nil)")))
+		return
 
-	/*
-		test, err := localizer.(&i18n.Message{
-			ID: "HelloWorld1",
-
-
-		})
-
-	*/
-
-	log.Print("###########")
-	log.Print(msg)
-	/*
-		if !errors.Is(err,i18n) {
-			w.Write([]byte(app.errMessage(app.GetLocale("").Text.Page.Auth.Register_link_is_invalid, nil, false, "")))
-			return
-		}
-	*/
-	w.Write([]byte(msg))
-
-	link := chi.URLParam(r, "test")
+	}
+	link := chi.URLParam(r, "link")
 
 	if link == "" {
 		w.Write([]byte(app.errMessage("param link is missing", nil, false, "")))
