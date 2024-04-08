@@ -20,7 +20,6 @@ import (
 // @Router       /bl-api/page/v1/ [get]
 func (app *App) PageIndex(res http.ResponseWriter, req *http.Request) {
 	//app.printError(res, http.StatusInternalServerError, 200, nil, "")
-	logrus.Println("#################")
 
 	localizer := req.Context().Value(LocalizerKey{}).(*i18n.Localizer)
 	msg, _ := localizer.Localize(&i18n.LocalizeConfig{

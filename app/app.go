@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"goapp/config"
-	"goapp/lang"
 	"goapp/models"
 	"goapp/repository"
 
@@ -46,7 +45,6 @@ type Page struct {
 
 type App struct {
 	validator  *validator.Validate
-	lang       *lang.Lang
 	db         *gorm.DB
 	conf       *config.Config
 	bundle     *i18n.Bundle
@@ -55,7 +53,6 @@ type App struct {
 
 func New(
 	validator *validator.Validate,
-	lang *lang.Lang,
 	db *gorm.DB,
 	config *config.Config,
 	bundle *i18n.Bundle,
@@ -64,7 +61,6 @@ func New(
 	loadDefaultMessages(bundle)
 	return &App{
 		validator:  validator,
-		lang:       lang,
 		db:         db,
 		conf:       config,
 		bundle:     bundle,
@@ -205,45 +201,18 @@ func (a *App) JsonError(w http.ResponseWriter, status int, publicMessage string,
 	w.Write(errorJson)
 }
 
-func (a *App) errMessage(publicMessage string, err error, doLog bool, optionalLoggingMessage string) string {
-
-	if doLog || a.conf.Debug {
-		_, fn, line, _ := runtime.Caller(1)
-
-		//logrus.Info("####### Error (TODOD write to sql)")
-		logrus.WithFields(logrus.Fields{
-			"errMessage":     true,
-			"func":           fn,
-			"line":           fmt.Sprintf("%d", line),
-			"publicMessage":  publicMessage,
-			"loggingMessage": optionalLoggingMessage,
-		}).Error(err)
-
-	}
-
-	if publicMessage == "" {
-		msg := a.GetLocale("").Text.Error__commen_server_error
-		return msg
-	}
-
-	return publicMessage
-
-}
-
-func (a *App) GetLocale(lang string) *lang.Locale {
-
-	locale, ok := a.lang.Locale[lang]
-	if !ok {
-		locale = *a.lang.DefaultLocale
-	}
-
-	return &locale
-}
-
 func (a *App) ExecuteTemplate(w http.ResponseWriter, view *template.Template, localizer *i18n.Localizer, templateFile string, data any) {
 	err := view.ExecuteTemplate(w, "register-link.html", data)
 	if err != nil {
-		w.Write([]byte(a.errMessage(GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), nil, false, "view.ExecuteTemplate(w,\"index.html\", nil)")))
+		_, fn, line, _ := runtime.Caller(1)
+		msg := GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR)
+		logrus.WithFields(logrus.Fields{
+			"func":           fn,
+			"line":           fmt.Sprintf("%d", line),
+			"publicMessage":  msg,
+			"loggingMessage": "view.ExecuteTemplate",
+		}).Error(err)
+		w.Write([]byte(msg))
 	}
 
 }
@@ -326,27 +295,6 @@ func (app *App) formErrors(localizer *i18n.Localizer, err error, msg *string) *E
 				})
 			}
 			fields[err.Field()] = msg
-			/*
-				case "required":
-					//fields[err.Field()] = fmt.Sprintf(app.GetLocale(lang).Validator.Required)
-					fields[err.Field()] = fmt.Sprintf(app.GetLocale(lang).Validator.Required)
-
-				case "max":
-					fields[err.Field()] = fmt.Sprintf(app.GetLocale(lang).Validator.Max, err.Param())
-				case "min":
-					fields[err.Field()] = fmt.Sprintf(app.GetLocale(lang).Validator.Min, err.Param())
-				case "url":
-					fields[err.Field()] = fmt.Sprintf(app.GetLocale(lang).Validator.Url)
-				case "email":
-					fields[err.Field()] = fmt.Sprintf(app.GetLocale(lang).Validator.Email)
-				case "alpha_space":
-					fields[err.Field()] = fmt.Sprintf(app.GetLocale(lang).Validator.Alpha_space)
-				case "date":
-					fields[err.Field()] = fmt.Sprintf(app.GetLocale(lang).Validator.Date)
-				default:
-					fields[err.Field()] = fmt.Sprintf(app.GetLocale(lang).Validator.Default, err.Tag())
-				}
-			*/
 		}
 		if len(fields) > 0 {
 			resp.Error.Fields = &fields
@@ -357,8 +305,16 @@ func (app *App) formErrors(localizer *i18n.Localizer, err error, msg *string) *E
 }
 
 func (app *App) checkForm(localizer *i18n.Localizer, form interface{}, w http.ResponseWriter, r *http.Request, errorMessage *string) (stop bool) {
+	msgFromError, _ := localizer.Localize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID:    "FormsValidator.FormResponseError",
+			Other: "form has an error",
+		},
+	})
+
 	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__form_response_error, err, false, "")
+
+		app.JsonError(w, http.StatusUnprocessableEntity, msgFromError, err, false, "")
 		return true
 	}
 
@@ -366,12 +322,12 @@ func (app *App) checkForm(localizer *i18n.Localizer, form interface{}, w http.Re
 		logrus.Warn(err)
 		resp := app.formErrors(localizer, err, errorMessage)
 		if resp == nil {
-			app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__form_response_error, err, false, "")
+			app.JsonError(w, http.StatusUnprocessableEntity, msgFromError, err, false, "")
 			return true
 		}
 		respBody, err := json.Marshal(resp)
 		if err != nil {
-			app.JsonError(w, http.StatusInternalServerError, app.GetLocale("").Text.Error__json_create, err, false, "")
+			app.JsonError(w, http.StatusInternalServerError, GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), err, false, "")
 			return true
 		}
 		w.WriteHeader(http.StatusUnprocessableEntity)
@@ -397,7 +353,6 @@ func (a *App) sendMail(adhoc bool, mailSubject string, mailText string, mailHtml
 	}
 	dbMail, err := repository.CreateMail(a.db, &mail)
 	if err != nil {
-		//a.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__database_error, "Error__database_error in CreateMail", err)
 		return err
 	}
 
@@ -417,7 +372,6 @@ func (a *App) sendMail(adhoc bool, mailSubject string, mailText string, mailHtml
 		}
 		_, errDB := repository.UpdateMail(a.db, dbMail)
 		if errDB != nil {
-			//app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__database_error, "Error__database_error in UpdateMail", err)
 			return err
 		}
 	}
