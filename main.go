@@ -20,7 +20,6 @@ import (
 	dbConn "goapp/adapter/gorm"
 	"goapp/app"
 	"goapp/config"
-	"goapp/lang"
 	"goapp/router"
 	"goapp/util/logger/goose_logger"
 	"goapp/util/tools"
@@ -169,8 +168,6 @@ func Server(appConfig *config.Config, bundle *i18n.Bundle, opts ArgOptions, args
 	logrus.Info("Default Language: " + appConfig.Language)
 	//logrus.Info("Log/System Language: " + appConfig.LogLanguage)
 
-	appLang := lang.AppLang(appConfig.Language, dataFS)
-
 	// check DB Connection on Start 100 times
 	logrus.Info("Connect Database: " + appConfig.Database.Type)
 
@@ -201,7 +198,7 @@ func Server(appConfig *config.Config, bundle *i18n.Bundle, opts ArgOptions, args
 	addressApp := fmt.Sprintf(":%d", appConfig.Server.Port)
 	addressApi := fmt.Sprintf(":%d", appConfig.Server.PortIntern)
 
-	application := app.New(validator, appLang, db, appConfig, bundle, &templatesFS)
+	application := app.New(validator, db, appConfig, bundle, &templatesFS)
 
 	appRouter := router.NewApp(application, publicFS)
 	internRouter := router.NewIntern(application, publicFS)

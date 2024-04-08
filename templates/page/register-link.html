@@ -4,6 +4,13 @@
 </head>
 
 <body>
-    <p>hallo1 {{ .ErrorMessage}}</p>
+    {{ if .ErrorMessage }}
+    <p> Error </p>
+    <p>{{ .ErrorMessage}}</p>
+    {{ else }}
+     {{ if .Message }}
+     <p>{{ .Message}}</p>
+     {{ end }}
+    {{ end }}
 </body>
 </html>

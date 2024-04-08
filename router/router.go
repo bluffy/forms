@@ -10,7 +10,7 @@ import (
 	"goapp/app/middleware"
 
 	"gitea.com/go-chi/session"
-	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -99,6 +99,7 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 		MaxAge: a.Conf().Server.Cors.MaxAge, // Maximum value not ignored by any of major browsers
 	}))
 	r.Use(middleware.SetSession(a))
+	r.Use(middleware.SetLocale(a))
 
 	r.HandleFunc("/healthz", a.HanlderHealth)
 
@@ -149,7 +150,7 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 	*/
 
 	r.Route("/p", func(r chi.Router) {
-		r.Get("/register/{link}", a.HandlerRgisterLink)
+		r.Get("/register/{link}", a.HandlerRegisterLink)
 	})
 
 	r.Route("/bl-api", func(r chi.Router) {

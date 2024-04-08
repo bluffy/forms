@@ -19,12 +19,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserIDKey struct{}
-type LocalizerKey struct{}
-
 //go:embed version/*
 var versionFS embed.FS
 var version = "0.0.0"
+
+type ContextUserIDKey struct{}
+type ContextLocalizerKey struct{}
+type ContextSessionStoreKey struct{}
 
 type ErrResponse struct {
 	//Errors []string `json:"errors"`
@@ -115,14 +116,14 @@ func (a *App) GetBundle() *i18n.Bundle {
 	return a.bundle
 }
 
-func (a *App) GetLocalizer(r *http.Request, lang string) *i18n.Localizer {
+func (a *App) GetLocalizerFrom(r *http.Request, lang string) *i18n.Localizer {
 	accept := r.Header.Get("Accept-Language")
 	return i18n.NewLocalizer(a.bundle, lang, accept)
 
 }
 
 func GetLocalizer(r *http.Request) *i18n.Localizer {
-	return r.Context().Value(LocalizerKey{}).(*i18n.Localizer)
+	return r.Context().Value(ContextLocalizerKey{}).(*i18n.Localizer)
 }
 
 func (a *App) JsonErrorMessage(locConfig *i18n.LocalizeConfig, r *http.Request, w http.ResponseWriter, status int, err error, doLog bool, optionalLoggingMessage string) {
@@ -145,7 +146,7 @@ func (a *App) JsonErrorMessage(locConfig *i18n.LocalizeConfig, r *http.Request, 
 
 	var appError ErrResponse
 	if publicMessage == "" {
-		msg := a.GetLocale("").Text.Error__commen_server_error
+		msg := GetDefaultMessage(GetLocalizer(r), DEFAULT_MESSAGE_COMMON_SERVER_ERROR)
 		appError.Error.Message = &msg
 	} else {
 		appError.Error.Message = &publicMessage
@@ -183,15 +184,8 @@ func (a *App) JsonError(w http.ResponseWriter, status int, publicMessage string,
 		}).Error(err)
 
 	}
-
 	var appError ErrResponse
-	if publicMessage == "" {
-		msg := a.GetLocale("").Text.Error__commen_server_error
-		appError.Error.Message = &msg
-	} else {
-		appError.Error.Message = &publicMessage
-	}
-
+	appError.Error.Message = &publicMessage
 	w.WriteHeader(status)
 
 	errorJson, err := json.Marshal(appError)
@@ -209,11 +203,11 @@ func (a *App) JsonError(w http.ResponseWriter, status int, publicMessage string,
 	w.Write(errorJson)
 }
 
-func (a *App) ExecuteTemplate(w http.ResponseWriter, view *template.Template, localizer *i18n.Localizer, templateFile string, data any) {
-	err := view.ExecuteTemplate(w, "register-link.html", data)
+func (a *App) ExecuteTemplate(w http.ResponseWriter, r *http.Request, view *template.Template, templateFile string, data any) {
+	err := view.ExecuteTemplate(w, templateFile, data)
 	if err != nil {
 		_, fn, line, _ := runtime.Caller(1)
-		msg := GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR)
+		msg := GetDefaultMessage(GetLocalizer(r), DEFAULT_MESSAGE_COMMON_SERVER_ERROR)
 		logrus.WithFields(logrus.Fields{
 			"func":           fn,
 			"line":           fmt.Sprintf("%d", line),

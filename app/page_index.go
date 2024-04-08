@@ -3,6 +3,7 @@ package app
 import (
 	"net/http"
 
+	"gitea.com/go-chi/session"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/sirupsen/logrus"
 )
@@ -21,11 +22,9 @@ import (
 func (app *App) PageIndex(res http.ResponseWriter, req *http.Request) {
 	//app.printError(res, http.StatusInternalServerError, 200, nil, "")
 
-	localizer := req.Context().Value(LocalizerKey{}).(*i18n.Localizer)
+	localizer := req.Context().Value(ContextLocalizerKey{}).(*i18n.Localizer)
 	msg, _ := localizer.Localize(&i18n.LocalizeConfig{
-
 		PluralCount: 2,
-
 		DefaultMessage: &i18n.Message{
 			ID:          "HelloWorld6",
 			Many:        "hallo viele ",
@@ -35,6 +34,14 @@ func (app *App) PageIndex(res http.ResponseWriter, req *http.Request) {
 			One:         "Hallo 1 {{.PluralCount}} ",
 		},
 	})
+	logrus.Println("#### TEST")
+
+	sessionStore := req.Context().Value(ContextSessionStoreKey{}).(*session.Store)
+
+	sess := *sessionStore
+	logrus.Info(sess.Get("test-session"))
+
+	logrus.Info(sess.Get("user_id"))
 
 	logrus.Println("###############")
 	logrus.Println(msg)
