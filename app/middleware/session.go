@@ -3,8 +3,9 @@ package middleware
 import (
 	"context"
 	"goapp/app"
-	"log"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 
 	"gitea.com/go-chi/session"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -24,7 +25,7 @@ func SetSession(a *app.App) func(next http.Handler) http.Handler {
 				}
 			}
 
-			log.Println(locale)
+			logrus.Println(locale)
 			localizer := i18n.NewLocalizer(a.GetBundle(), locale, accept)
 			ctx := context.WithValue(r.Context(), app.LocalizerKey{}, localizer)
 

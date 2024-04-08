@@ -8,7 +8,7 @@ import (
 	"goapp/app"
 	"goapp/service"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 func JWTAuth(a *app.App) func(next http.Handler) http.Handler {
@@ -45,8 +45,8 @@ func JWTAuth(a *app.App) func(next http.Handler) http.Handler {
 				fmt.Fprintf(w, `{"error": {"message": "%v"}}`, "invalid token")
 				return
 			}
-			log.Debug("### USER")
-			log.Debug(user)
+			logrus.Debug("### USER")
+			logrus.Debug(user)
 
 			next.ServeHTTP(w, r)
 

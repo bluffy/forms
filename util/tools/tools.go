@@ -14,8 +14,7 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -61,7 +60,7 @@ func Encrypt(plaintext []byte, key []byte, iv string) (ciphertext []byte, err er
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("%v", len(iv))
+	logrus.Debugf("%v", len(iv))
 
 	nonce := make([]byte, 12)
 
@@ -75,7 +74,7 @@ func Encrypt(plaintext []byte, key []byte, iv string) (ciphertext []byte, err er
 
 	}
 
-	//log.Printf("%v", len(iv[15:27]))
+	//logrus.Printf("%v", len(iv[15:27]))
 	//nonce := make([]byte, gcm.NonceSize())
 	//nonce := commonIV
 	/*

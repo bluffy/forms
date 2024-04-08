@@ -5,7 +5,7 @@ import (
 	"io/fs"
 
 	"github.com/creasty/defaults"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 
 	"goapp/lang/locale"
@@ -40,8 +40,8 @@ func AppLang(defaultLang string, langFS embed.FS) *Lang {
 
 	err := yaml.Unmarshal([]byte(``), &locale)
 	if err != nil {
-		log.Info(err)
-		log.Fatal("Error in Example")
+		logrus.Info(err)
+		logrus.Fatal("Error in Example")
 	}
 	language.DefaultLocale = locale
 
@@ -60,7 +60,7 @@ func AppLang(defaultLang string, langFS embed.FS) *Lang {
 		return nil
 
 	}); err != nil {
-		log.Fatal("Error in Lang Walkdir")
+		logrus.Fatal("Error in Lang Walkdir")
 		return nil
 	}
 
@@ -75,8 +75,8 @@ func AppLang(defaultLang string, langFS embed.FS) *Lang {
 		err = d2.Decode(&locale)
 		if err != nil {
 
-			log.Info("Error Lang Parsing: " + file)
-			log.Info(err)
+			logrus.Info("Error Lang Parsing: " + file)
+			logrus.Info(err)
 		} else {
 			code := file[:len(file)-len(filepath.Ext(file))]
 			code = filepath.Base(code)
@@ -92,7 +92,7 @@ func AppLang(defaultLang string, langFS embed.FS) *Lang {
 
 	_, ok := language.Locale[language.Default]
 	if !ok {
-		log.Fatal("Error in Lang: Default lang: " + language.Default + " not exists!")
+		logrus.Fatal("Error in Lang: Default lang: " + language.Default + " not exists!")
 		return nil
 	}
 

@@ -16,7 +16,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -128,7 +128,7 @@ func (a *App) JsonErrorMessage(locConfig *i18n.LocalizeConfig, r *http.Request, 
 	_, fn, line, _ := runtime.Caller(1)
 	if doLog || a.conf.Debug {
 
-		log.WithFields(log.Fields{
+		logrus.WithFields(logrus.Fields{
 			"jsonError":      true,
 			"func":           fn,
 			"line":           fmt.Sprintf("%d", line),
@@ -151,7 +151,7 @@ func (a *App) JsonErrorMessage(locConfig *i18n.LocalizeConfig, r *http.Request, 
 
 	errorJson, err := json.Marshal(appError)
 	if err != nil {
-		log.WithFields(log.Fields{
+		logrus.WithFields(logrus.Fields{
 			"func":           fn,
 			"line":           fmt.Sprintf("%d", line),
 			"publicMessage":  publicMessage,
@@ -169,7 +169,7 @@ func (a *App) JsonError(w http.ResponseWriter, status int, publicMessage string,
 	_, fn, line, _ := runtime.Caller(1)
 	if doLog || a.conf.Debug {
 
-		log.WithFields(log.Fields{
+		logrus.WithFields(logrus.Fields{
 			"jsonError":      true,
 			"func":           fn,
 			"line":           fmt.Sprintf("%d", line),
@@ -192,7 +192,7 @@ func (a *App) JsonError(w http.ResponseWriter, status int, publicMessage string,
 
 	errorJson, err := json.Marshal(appError)
 	if err != nil {
-		log.WithFields(log.Fields{
+		logrus.WithFields(logrus.Fields{
 			"func":           fn,
 			"line":           fmt.Sprintf("%d", line),
 			"publicMessage":  publicMessage,
@@ -210,8 +210,8 @@ func (a *App) errMessage(publicMessage string, err error, doLog bool, optionalLo
 	if doLog || a.conf.Debug {
 		_, fn, line, _ := runtime.Caller(1)
 
-		//log.Info("####### Error (TODOD write to sql)")
-		log.WithFields(log.Fields{
+		//logrus.Info("####### Error (TODOD write to sql)")
+		logrus.WithFields(logrus.Fields{
 			"errMessage":     true,
 			"func":           fn,
 			"line":           fmt.Sprintf("%d", line),
@@ -363,7 +363,7 @@ func (app *App) checkForm(localizer *i18n.Localizer, form interface{}, w http.Re
 	}
 
 	if err := app.validator.Struct(form); err != nil {
-		log.Warn(err)
+		logrus.Warn(err)
 		resp := app.formErrors(localizer, err, errorMessage)
 		if resp == nil {
 			app.JsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__form_response_error, err, false, "")

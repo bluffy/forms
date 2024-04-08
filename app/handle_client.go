@@ -20,9 +20,9 @@ type (
 )
 
 func (frw *FallbackResponseWriter) WriteHeader(statusCode int) {
-	//log.Printf("INFO: WriteHeader called with code %d\n", statusCode)
+	//logrus.Printf("INFO: WriteHeader called with code %d\n", statusCode)
 	if statusCode == http.StatusNotFound {
-		//log.Printf("INFO: Setting FileNotFound flag\n")
+		//logrus.Printf("INFO: Setting FileNotFound flag\n")
 		frw.FileNotFound = true
 		return
 	}

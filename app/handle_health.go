@@ -1,41 +1,41 @@
 package app
 
 import (
-	"log"
 	"net/http"
 
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
 func (app *App) HanlderHealth(res http.ResponseWriter, req *http.Request) {
 
-	log.Printf("--- m dump:\n%s\n\n", req.Header.Get("Accept-Language"))
+	logrus.Printf("--- m dump:\n%s\n\n", req.Header.Get("Accept-Language"))
 
 	res.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	val, ok := app.lang.Locale["en"]
-	log.Println(ok)
+	logrus.Println(ok)
 	if ok {
-		log.Println(val.Text.Welcome)
+		logrus.Println(val.Text.Welcome)
 	}
 	d, err := yaml.Marshal(&val)
 	if err != nil {
-		log.Fatalf("error: %v", err)
+		logrus.Fatalf("error: %v", err)
 	}
-	log.Printf("--- m dump:\n%s\n\n", string(d))
+	logrus.Printf("--- m dump:\n%s\n\n", string(d))
 	/*
-		log.Println("TEST")
+		logrus.Println("TEST")
 
 		val, ok := app.lang.Locale["en"]
-		log.Println(ok)
+		logrus.Println(ok)
 		if ok {
-			log.Println(val.Text.Welcome)
+			logrus.Println(val.Text.Welcome)
 		}
 
 		d, err := yaml.Marshal(&val)
 		if err != nil {
-			log.Fatalf("error: %v", err)
+			logrus.Fatalf("error: %v", err)
 		}
-		log.Printf("--- m dump:\n%s\n\n", string(d))
+		logrus.Printf("--- m dump:\n%s\n\n", string(d))
 	*/
 
 	/*

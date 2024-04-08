@@ -250,7 +250,7 @@ func (app *App) RefreshLoginToken(w http.ResponseWriter, r *http.Request) {
 
 	token := models.Token{}
 
-	log.Debug("body: %d", r.Context())
+	logrus.Debug("body: %d", r.Context())
 	if err := json.NewDecoder(r.Body).Decode(&token); err != nil {
 		app.jsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__json_decode, "Error__json_decode", err)
 		return

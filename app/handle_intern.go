@@ -17,7 +17,7 @@ func (app *App) HandlerIntern(res http.ResponseWriter, req *http.Request) {
 		}
 
 		if err := json.NewEncoder(res).Encode(user.ToDto()); err != nil {
-			log.Warn(err)
+			logrus.Warn(err)
 			app.printError(res, http.StatusInternalServerError, 102, err, "")
 		}#
 	*/
@@ -32,7 +32,7 @@ func (app *App) HandlerIntern(res http.ResponseWriter, req *http.Request) {
 		}
 
 		if err := json.NewEncoder(res).Encode(user); err != nil {
-			log.Warn(err)
+			logrus.Warn(err)
 			printError(app, res, http.StatusInternalServerError, appErrJsonCreationFailure, err)
 		}
 	*/

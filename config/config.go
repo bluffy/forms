@@ -6,9 +6,8 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/creasty/defaults"
+	"github.com/sirupsen/logrus"
 
 	"gopkg.in/yaml.v2"
 )
@@ -72,7 +71,7 @@ type Cors struct {
 
 func (conf *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	defaults.Set(conf)
-	//log.Infof("#######test:%+v\n", conf)
+	//logrus.Infof("#######test:%+v\n", conf)
 	type plain Config
 	if err := unmarshal((*plain)(conf)); err != nil {
 		return err
@@ -90,7 +89,7 @@ func New(configFile string) (*Config, error) {
 	}
 	defer file.Close()
 
-	log.Info("Config File: " + configFile)
+	logrus.Info("Config File: " + configFile)
 
 	d := yaml.NewDecoder(file)
 	if err := d.Decode(&config); err != nil {
