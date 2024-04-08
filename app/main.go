@@ -4,6 +4,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 	"runtime"
 	"time"
@@ -34,8 +35,13 @@ type ErrResponse struct {
 	} `json:"error"`
 }
 
-type PageResponse struct {
+type ApiPageResponse struct {
 	Message *string `json:"message,omitempty"`
+}
+
+type Page struct {
+	ErrorMessage *string
+	Message      *string
 }
 
 type App struct {
@@ -232,6 +238,14 @@ func (a *App) GetLocale(lang string) *lang.Locale {
 	}
 
 	return &locale
+}
+
+func (a *App) ExecuteTemplate(w http.ResponseWriter, view *template.Template, localizer *i18n.Localizer, templateFile string, data any) {
+	err := view.ExecuteTemplate(w, "register-link.html", data)
+	if err != nil {
+		w.Write([]byte(a.errMessage(GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), nil, false, "view.ExecuteTemplate(w,\"index.html\", nil)")))
+	}
+
 }
 
 func (app *App) formErrors(localizer *i18n.Localizer, err error, msg *string) *ErrResponse {

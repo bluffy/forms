@@ -3,8 +3,8 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"html/template"
 	"net/http"
-	"text/template"
 
 	"goapp/models"
 	"goapp/repository"
@@ -143,7 +143,7 @@ func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var response PageResponse
+	var response ApiPageResponse
 	response.Message = &app.GetLocale("").Text.Page_auth__regsitering_success
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		app.JsonError(w, http.StatusUnprocessableEntity, GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), err, false, "")
@@ -167,20 +167,11 @@ func (app *App) HandlerRgisterLink(w http.ResponseWriter, r *http.Request) {
 	localizer := app.GetLocalizer(r, "de")
 	//var tmplFile = "templates/page/default.html"
 	//tmpl, err := template.New(tmplFile).ParseFS(app.templateFS, tmplFile)
-	view := template.Must(template.ParseFS(app.templateFS, "templates/page/index.html"))
+	templateFile := "register-link.html"
+	page := &Page{}
+	view := template.Must(template.ParseFS(app.templateFS, "templates/page/*"))
 
-	err := view.ExecuteTemplate(w, "index.html", nil)
-	if err != nil {
-		w.Write([]byte(app.errMessage(GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), nil, false, "view.ExecuteTemplate(w,\"index.html\", nil)")))
-		return
-
-	}
 	link := chi.URLParam(r, "link")
-
-	if link == "" {
-		w.Write([]byte(app.errMessage("param link is missing", nil, false, "")))
-		return
-	}
 
 	linkDec, err := tools.DecryptBase64(link, app.conf.EncryptKey)
 	if err != nil {
@@ -210,15 +201,27 @@ func (app *App) HandlerRgisterLink(w http.ResponseWriter, r *http.Request) {
 	dbUser, err := repository.GetUserByEmail(app.db, dbRegisterUser.Email)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			w.Write([]byte(app.errMessage(app.GetLocale("").Text.Error__database_error, nil, false, "")))
-
+			errMsg, _ := localizer.Localize(&i18n.LocalizeConfig{
+				DefaultMessage: &i18n.Message{
+					ID: DEFAULT_MESSAGE_COMMON_SERVER_ERROR,
+				},
+			})
+			page.ErrorMessage = &errMsg
+			app.ExecuteTemplate(w, view, localizer, templateFile, page)
 			return
 		}
 	}
 
 	if dbUser != nil && dbUser.Email == dbRegisterUser.Email {
-		w.Write([]byte(app.errMessage(app.GetLocale("").Text.Page.Auth.Register_user_already_registered, nil, false, "")))
 
+		errMsg, _ := localizer.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:    "Api.HandlerRgisterLink.User_already_registered",
+				Other: "user alread exists",
+			},
+		})
+		page.ErrorMessage = &errMsg
+		app.ExecuteTemplate(w, view, localizer, templateFile, page)
 		return
 	}
 
@@ -232,6 +235,13 @@ func (app *App) HandlerRgisterLink(w http.ResponseWriter, r *http.Request) {
 	_ = repository.DeleteRegisterUser(app.db, dbRegisterUser.ID)
 
 	w.Write([]byte(app.errMessage(app.GetLocale("").Text.Page.Auth.Message_user_created, nil, false, "")))
+
+	err = view.ExecuteTemplate(w, "register-link.html", nil)
+	if err != nil {
+		w.Write([]byte(app.errMessage(GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), nil, false, "view.ExecuteTemplate(w,\"index.html\", nil)")))
+		return
+
+	}
 
 }
 
