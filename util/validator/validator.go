@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
@@ -58,41 +57,4 @@ func ErrorMsg(msg string) *ErrResponse {
 	resp.Error.Message = msg
 	return &resp
 
-}
-func ToErrResponse(err error, msg *string) *ErrResponse {
-
-	if fieldErrors, ok := err.(validator.ValidationErrors); ok {
-		/*
-			resp := ErrResponse{
-				Errors: make(map[string]interface{}),
-			}
-		*/
-		resp := ErrResponse{}
-		resp.Error.Fields = make(map[string]interface{})
-		if msg != nil {
-			resp.Error.Message = *msg
-		}
-		for _, err := range fieldErrors {
-			switch err.Tag() {
-			case "required":
-				resp.Error.Fields[err.Field()] = fmt.Sprintf("is a required")
-			case "max":
-				resp.Error.Fields[err.Field()] = fmt.Sprintf("must be a maximum of %s in length", err.Param())
-			case "min":
-				resp.Error.Fields[err.Field()] = fmt.Sprintf("must be a minimum of %s in length", err.Param())
-			case "url":
-				resp.Error.Fields[err.Field()] = fmt.Sprintf("must be a valid URL")
-			case "email":
-				resp.Error.Fields[err.Field()] = fmt.Sprintf("must be a valid email address")
-			case "alpha_space":
-				resp.Error.Fields[err.Field()] = fmt.Sprintf("can only contain alphabetic and space characters")
-			case "date":
-				resp.Error.Fields[err.Field()] = fmt.Sprintf("must be a valid date")
-			default:
-				resp.Error.Fields[err.Field()] = fmt.Sprintf("something wrong; %s", err.Tag())
-			}
-		}
-		return &resp
-	}
-	return nil
 }

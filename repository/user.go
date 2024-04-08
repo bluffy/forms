@@ -60,3 +60,10 @@ func CreateUser(db *gorm.DB, obj *models.User) (*models.User, error) {
 	}
 	return obj, nil
 }
+
+func CountAllUsers(db *gorm.DB) int64 {
+	var count int64
+	db.Model(&models.User{}).Where("name = ?", "jinzhu").Count(&count)
+
+	return count
+}
