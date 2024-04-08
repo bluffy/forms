@@ -22,9 +22,6 @@ FormsValidator.Required:
 FormsValidator.URL:
   hash: sha1-1f26c7d9f6a6fbe270a63fa22c9a6cfcc976f818
   other: muss eine gültige URL sein
-HelloWorld1:
-  hash: sha1-121e81f3e54447e846dcd93f800d2030245a5db9
-  other: Hallo {{.Names}}!
 HelloWorld6:
   description: beschreibung
   hash: sha1-30d9c44fd59fb553995b6ccd75f446f979c8c1d0

@@ -1,6 +1,18 @@
+Api.HandlerLogin.Error.UserNotExits:
+  hash: sha1-64b1f909c4aa7069d12c4535b50f518239d5f523
+  other: user & password not matched
 Api.HandlerRegister.Error.ConfirmationMailNotSend:
   hash: sha1-261e65acdd20ec877f52e4a8b65edd409422ccf2
   other: no confirmation email could be sent
 Api.HandlerRegister.Error.UserAlreadyRegistered:
   hash: sha1-d5d968b8708e2dd148502eb544ae7407834f7c7f
   other: user alread exists
+Api.HandlerRgisterLink.User_already_registered:
+  hash: sha1-d5d968b8708e2dd148502eb544ae7407834f7c7f
+  other: user alread exists
+FormsValidator.FormResponseError:
+  hash: sha1-c657d3741da5d9c928a3b432d29700bcd7464a85
+  other: form has an error
+Server.CommonError1:
+  hash: sha1-29d3863678f0f4a50ecae9e3bb54097eecad898c
+  other: Error on Server1

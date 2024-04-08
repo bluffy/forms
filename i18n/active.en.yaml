@@ -1,15 +1,17 @@
+Api.HandlerLogin.Error.UserNotExits: user & password not matched
 Api.HandlerRegister.Error.ConfirmationMailNotSend: no confirmation email could be
   sent
 Api.HandlerRegister.Error.UserAlreadyRegistered: user alread exists
+Api.HandlerRgisterLink.User_already_registered: user alread exists
 FormsValidator.AlphaSpace: can only contain alphabetic and space characters
 FormsValidator.Date: imust be a valid date
 FormsValidator.Default: 'something wrong: {{.Tag}}'
 FormsValidator.Email: must be a valid email addres
+FormsValidator.FormResponseError: form has an error
 FormsValidator.Max: must be a maximum of {{.Chars}} in length
 FormsValidator.Min: must be a minimum of {{.Chars}} in length
 FormsValidator.Required: is required
 FormsValidator.URL: must be a valid URL
-HelloWorld1: Hello {{.Names}}!
 HelloWorld6:
   description: beschreibung
   few: ein ppar  !
@@ -17,3 +19,4 @@ HelloWorld6:
   one: 'Hallo 1 {{.PluralCount}} '
   other: 'Hell  '
 Server.CommonError: Error on Server
+Server.CommonError1: Error on Server1

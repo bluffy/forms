@@ -69,14 +69,22 @@ func New(
 }
 
 const DEFAULT_MESSAGE_COMMON_SERVER_ERROR = "Server.CommonError"
+const DEFAULT_MESSAGE_COMMON_SERVER_ERROR1 = "Server.CommonError1"
 
 func loadDefaultMessages(bundle *i18n.Bundle) {
 	localizer := i18n.NewLocalizer(bundle)
 
 	_, _ = localizer.Localize(&i18n.LocalizeConfig{
 		DefaultMessage: &i18n.Message{
-			ID:    "Server.CommonError",
+			ID:    DEFAULT_MESSAGE_COMMON_SERVER_ERROR,
 			Other: "Error on Server",
+		},
+	})
+
+	_, _ = localizer.Localize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID:    DEFAULT_MESSAGE_COMMON_SERVER_ERROR1,
+			Other: "Error on Server1",
 		},
 	})
 }
