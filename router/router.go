@@ -10,7 +10,7 @@ import (
 	"goapp/app/middleware"
 
 	"gitea.com/go-chi/session"
-	"github.com/go-chi/chi"
+	chi "github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -24,7 +24,7 @@ func fileServer(r chi.Router, path string, root http.FileSystem) {
 	}
 
 	if path != "/" && path[len(path)-1] != '/' {
-		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		r.Get(path, http.RedirectHandler(path+"/", http.StatusMovedPermanently).ServeHTTP)
 		path += "/"
 	}
 	path += "*"
@@ -150,7 +150,9 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 	*/
 
 	r.Route("/p", func(r chi.Router) {
-		r.Get("/register/{link}", a.HandlerRegisterLink)
+		r.Route("/user", func(r chi.Router) {
+			r.Get("/register/{link}", a.HandlerRegisterLink)
+		})
 	})
 
 	r.Route("/bl-api", func(r chi.Router) {
@@ -164,10 +166,13 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 					r.Use(middleware.CheckUserLogin(a))
 					r.Get("/", a.PageIndex)
 				})
-				r.Group(func(r chi.Router) {
-					r.Use(middleware.ContentTypeJson)
-					r.Post("/login", a.HandlerLogin)
-					r.Post("/register", a.HandlerRegister)
+				r.Route("/user", func(r chi.Router) {
+					r.Group(func(r chi.Router) {
+						r.Use(middleware.ContentTypeJson)
+						r.Post("/login", a.HandlerLogin)
+						r.Post("/register", a.HandlerRegister)
+						r.Post("/forgot_password", a.HandlerGeneratePasswordLink)
+					})
 				})
 
 			})

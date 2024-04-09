@@ -88,7 +88,7 @@ function defCols(field: any) {
     return ret;
 }
 function onSubmit(values: any, actions: any) {
-    return ApiService.postPage("/register", values).then(
+    return ApiService.postPage("/user/register", values).then(
         (page: PageRegister) => {
             if (page.status != 200 || !page.data.message) {
                 dialog.value.alert("error on Register");

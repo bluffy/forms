@@ -10,13 +10,13 @@ import (
 type Users []*User
 type User struct {
 	g.ModelUID
-	Email      string
-	Password   string
-	Newsletter bool
-	FirstName  string
-	LastName   string
-	IsAdmin    bool
-	//NewPasswordRequest *time.Time
+	Email              string
+	Password           string
+	Newsletter         bool
+	FirstName          string
+	LastName           string
+	IsAdmin            bool
+	NewPasswordRequest *time.Time
 }
 type RegisterUser struct {
 	g.ModelUID
@@ -42,6 +42,10 @@ type UserLoginForm struct {
 	Password  string `json:"password"  form:"required"`
 	UseCookie bool   `json:"use_cookie,omitempty"`
 }
+type UserPasswordForm struct {
+	Password      string `json:"password"  form:"required"`
+	PasswordReply string `json:"password_reply"  form:"required"`
+}
 type RegisterUserForm struct {
 	Email      string `json:"email" form:"required,max=255,email"`
 	FirstName  string `json:"first_name" form:"required,min=2,max=255"`
@@ -54,6 +58,10 @@ type RegisterUserForm struct {
 type RegisterUserLink struct {
 	ID        string
 	CreatedAt time.Time
+}
+type UserPasswordLink struct {
+	ID                 string
+	NewPasswordRequest time.Time
 }
 
 func (u User) ToDto() *UserDto {

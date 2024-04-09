@@ -44,7 +44,7 @@ const fields =ref([]);
 
 
 function onSubmit(values: any, actions: any) {
-    return ApiService.postPage("/login", values).then(
+    return ApiService.postPage("/user/login", values).then(
         (page: PageNoContent) => {
             if (page.status != 204) {
                 dialog.value.alert("error on login");

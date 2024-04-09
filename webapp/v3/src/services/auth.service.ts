@@ -7,7 +7,7 @@ const path_page = import.meta.env.VITE_APP_API_PATH_PAGE
 
 class AuthService {
   login(user: UserLoginForm) {
-    return api.post(path_page +"/login", user).then((response) => {
+    return api.post(path_page +"/user/login", user).then((response) => {
       
 
       return response.data;

@@ -132,85 +132,7 @@ func GetLocalizer(r *http.Request) *i18n.Localizer {
 	return r.Context().Value(ContextLocalizerKey{}).(*i18n.Localizer)
 }
 
-func (a *App) JsonErrorMessage(locConfig *i18n.LocalizeConfig, r *http.Request, w http.ResponseWriter, status int, err error, doLog bool, optionalLoggingMessage string) {
-	publicMessage, _ := GetLocalizer(r).Localize(locConfig)
-
-	commonError := "Error on Server"
-	_, fn, line, _ := runtime.Caller(1)
-	if doLog || a.conf.Debug {
-
-		logrus.WithFields(logrus.Fields{
-			"jsonError":      true,
-			"func":           fn,
-			"line":           fmt.Sprintf("%d", line),
-			"publicMessage":  publicMessage,
-			"loggingMessage": optionalLoggingMessage,
-			"httpsStatus":    status,
-		}).Error(err)
-
-	}
-
-	var appError ErrResponse
-	if publicMessage == "" {
-		msg := GetDefaultMessage(GetLocalizer(r), LOCALE_MSG_ID__COMMON_SERVER_ERROR)
-		appError.Error.Message = &msg
-	} else {
-		appError.Error.Message = &publicMessage
-	}
-
-	w.WriteHeader(status)
-
-	errorJson, err := json.Marshal(appError)
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"func":           fn,
-			"line":           fmt.Sprintf("%d", line),
-			"publicMessage":  publicMessage,
-			"loggingMessage": optionalLoggingMessage,
-		}).Error(err)
-		fmt.Fprintf(w, `{"error": {"message": "%s"}}`, commonError)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.Write(errorJson)
-}
-
-func (a *App) JsonError(r *http.Request, w http.ResponseWriter, status int, publicMessage string) {
-
-	var appError ErrResponse
-	if publicMessage == "" {
-		commonError := GetDefaultMessageError(r)
-		appError.Error.Message = &commonError
-	} else {
-		appError.Error.Message = &publicMessage
-	}
-	w.WriteHeader(status)
-
-	errorJson, err := json.Marshal(appError)
-	if err != nil {
-		commonError := GetDefaultMessageError(r)
-		a.ServerLogByRequest(r, err, commonError, true, "json.Marshal(appError)")
-		fmt.Fprintf(w, `{"error": {"message": "%s"}}`, commonError)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.Write(errorJson)
-}
-
-func (a *App) Render(w io.Writer, p Page) error {
-	templ, err := template.ParseFS(a.templateFS, "templates/*")
-	if err != nil {
-		return err
-	}
-
-	if err := templ.Execute(w, p); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (a *App) serverLog(err error, logMessage string) {
+func (a *App) ServerLog(err error, logMessage string) {
 	_, fn, line, _ := runtime.Caller(1)
 
 	fields := logrus.Fields{
@@ -246,6 +168,41 @@ func (a *App) ServerLogByRequest(r *http.Request, err error, publicMessage strin
 
 		logrus.WithFields(fields).Error(err)
 	}
+}
+
+func (a *App) JsonError(r *http.Request, w http.ResponseWriter, status int, publicMessage string) {
+
+	var appError ErrResponse
+	if publicMessage == "" {
+		commonError := GetDefaultMessageError(r)
+		appError.Error.Message = &commonError
+	} else {
+		appError.Error.Message = &publicMessage
+	}
+	w.WriteHeader(status)
+
+	errorJson, err := json.Marshal(appError)
+	if err != nil {
+		commonError := GetDefaultMessageError(r)
+		a.ServerLogByRequest(r, err, commonError, true, "json.Marshal(appError)")
+		fmt.Fprintf(w, `{"error": {"message": "%s"}}`, commonError)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write(errorJson)
+}
+
+func (a *App) Render(w io.Writer, p Page) error {
+	templ, err := template.ParseFS(a.templateFS, "templates/*")
+	if err != nil {
+		return err
+	}
+
+	if err := templ.Execute(w, p); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (a *App) RenderError(r *http.Request, w io.Writer, p *PageError) {
@@ -288,22 +245,6 @@ func (a *App) RenderPage(r *http.Request, w io.Writer, p *Page) {
 	if tmpErr := templ.ExecuteTemplate(w, "error.gohtml", p); tmpErr != nil {
 		msg := GetDefaultMessageError(r)
 		a.ServerLogByRequest(r, tmpErr, msg, true, "")
-		w.Write([]byte(msg))
-	}
-
-}
-
-func (a *App) ExecuteTemplate(w http.ResponseWriter, r *http.Request, view *template.Template, templateFile string, data any) {
-	err := view.ExecuteTemplate(w, templateFile, data)
-	if err != nil {
-		_, fn, line, _ := runtime.Caller(1)
-		msg := GetDefaultMessage(GetLocalizer(r), LOCALE_MSG_ID__COMMON_SERVER_ERROR)
-		logrus.WithFields(logrus.Fields{
-			"func":           fn,
-			"line":           fmt.Sprintf("%d", line),
-			"publicMessage":  msg,
-			"loggingMessage": "view.ExecuteTemplate",
-		}).Error(err)
 		w.Write([]byte(msg))
 	}
 

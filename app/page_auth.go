@@ -26,7 +26,7 @@ import (
 // @Failure      401 {object} models.AppError
 // @Failure      422 {object} models.AppError
 // @Failure      500 {object} models.AppError "Response JSON"
-// @Router       /bl-api/page/v1/login [post]
+// @Router       /bl-api/page/v1/user/login [post]
 func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 	localizer := GetLocalizer(r)
 
@@ -78,7 +78,7 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 // @Failure      401 {object} models.AppError
 // @Failure      422 {object} models.AppError
 // @Failure      500 {object} models.AppError "Response JSON"
-// @Router       /bl-api/page/v1/register [post]
+// @Router       /bl-api/page/v1/user/register [post]
 func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 
 	localizer := GetLocalizer(r)
@@ -136,7 +136,7 @@ func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
 	}
 
-	link := app.conf.Server.PublicURL + "/p/register/" + userLinkEncrypted
+	link := app.conf.Server.PublicURL + "/p/user/register/" + userLinkEncrypted
 	err = app.sendMail(true, "New Registration", "register link: "+link, "", registerUser.Email)
 	if err != nil {
 		msg, _ := localizer.Localize(&i18n.LocalizeConfig{
@@ -175,7 +175,7 @@ func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 // @Failure      401 {object} models.AppError
 // @Failure      422 {object} models.AppError
 // @Failure      500 {object} models.AppError "Response JSON"
-// @Router       /bl-api/page/v1/register [get]
+// @Router       /bl-api/page/v1/user/register [get]
 func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
 
 	link := chi.URLParam(r, "link")
@@ -321,3 +321,18 @@ func (app *App) RefreshLoginToken(w http.ResponseWriter, r *http.Request) {
 	}
 }
 */
+
+// HandlerLogin  godoc
+// @Tags         public
+// @Description  index test
+// @Accept       json
+// @Produce      json
+// @Param data body models.UserLoginForm  true "Email & Password"
+// @Success      204 {object} models.Token
+// @Failure      401 {object} models.AppError
+// @Failure      422 {object} models.AppError
+// @Failure      500 {object} models.AppError "Response JSON"
+// @Router       /bl-api/page/v1/user/forgot_password[post]
+func (app *App) HandlerGeneratePasswordLink(w http.ResponseWriter, r *http.Request) {
+
+}
