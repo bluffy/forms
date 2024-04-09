@@ -34,7 +34,6 @@ func (app *App) PageIndex(res http.ResponseWriter, req *http.Request) {
 			One:         "Hallo 1 {{.PluralCount}} ",
 		},
 	})
-	logrus.Println("#### TEST")
 
 	sessionStore := req.Context().Value(ContextSessionStoreKey{}).(*session.Store)
 

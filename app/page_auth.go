@@ -3,8 +3,6 @@ package app
 import (
 	"encoding/json"
 	"errors"
-	"html/template"
-	"log"
 	"net/http"
 
 	"goapp/models"
@@ -12,7 +10,7 @@ import (
 	"goapp/util/tools"
 
 	"gitea.com/go-chi/session"
-	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -46,11 +44,13 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	user, err := repository.GetUserByEmail(app.db, form.Email)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, msgUserPasswordNotMatched, err, false, "")
+		app.ServerLogByRequest(r, err, msgUserPasswordNotMatched, false, "")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msgUserPasswordNotMatched)
 		return
 	}
 	if !tools.CheckPasswordHash(form.Password, user.Password) {
-		app.JsonError(w, http.StatusUnprocessableEntity, msgUserPasswordNotMatched, err, false, "")
+		app.ServerLogByRequest(r, err, msgUserPasswordNotMatched, false, "!tools.CheckPasswordHash(form.Password, user.Password)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msgUserPasswordNotMatched)
 		return
 	}
 
@@ -59,7 +59,8 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	_, err = session.RegenerateSession(w, r)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), err, true, "session.RegenerateSession")
+		app.ServerLogByRequest(r, err, msgUserPasswordNotMatched, true, "session.RegenerateSession(w, r)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
 		return
 	}
 
@@ -96,37 +97,43 @@ func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 	user, err := repository.GetUserByEmail(app.db, form.Email)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			app.JsonError(w, http.StatusUnprocessableEntity, msgUserExists, err, false, "")
+			app.ServerLogByRequest(r, err, msgUserExists, true, "")
+			app.JsonError(r, w, http.StatusUnprocessableEntity, msgUserExists)
 			return
 		}
 	} else {
 		if user.ID != "" {
-			app.JsonError(w, http.StatusUnprocessableEntity, msgUserExists, err, false, "")
+			app.ServerLogByRequest(r, nil, msgUserExists, true, "user.ID != \"\"")
+			app.JsonError(r, w, http.StatusUnprocessableEntity, msgUserExists)
 			return
 		}
 
 	}
 	registerUser, err := form.ToModel()
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), err, true, "form.ToModel()")
+		app.ServerLogByRequest(r, err, "", true, "form.ToModel()")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
 		return
 	}
 	registerUser, err = repository.CreateRegisterUser(app.db, registerUser)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), err, false, "CreateRegisterUser(app.db, registerUser)")
+		app.ServerLogByRequest(r, err, "", true, "repository.CreateRegisterUser(app.db, registerUser)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
 		return
 	}
 
 	userLink := registerUser.ToLinkModel()
 	userLinkBytes, err := json.Marshal(userLink)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), err, true, "json.Marshal(userLink)")
+		app.ServerLogByRequest(r, err, "", true, "json.Marshal(userLink)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
 		return
 	}
 
 	userLinkEncrypted, err := tools.EncryptBase64(string(userLinkBytes), app.conf.EncryptKey)
 	if err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), err, true, "tools.EncryptBase64(string(userLinkBytes)")
+		app.ServerLogByRequest(r, err, "", true, "tools.EncryptBase64(string(userLinkBytes)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
 	}
 
 	link := app.conf.Server.PublicURL + "/p/register/" + userLinkEncrypted
@@ -138,7 +145,8 @@ func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 				Other: "no confirmation email could be sent",
 			},
 		})
-		app.JsonError(w, http.StatusUnprocessableEntity, msg, err, false, "")
+		app.ServerLogByRequest(r, err, msg, true, "app.sendMail()")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
 		return
 	}
 
@@ -151,7 +159,8 @@ func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 	})
 	response.Message = &msg
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		app.JsonError(w, http.StatusUnprocessableEntity, GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), err, false, "")
+		app.ServerLogByRequest(r, err, "", true, "form.ToModel()")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
 	}
 
 }
@@ -168,14 +177,15 @@ func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 // @Failure      500 {object} models.AppError "Response JSON"
 // @Router       /bl-api/page/v1/register [get]
 func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
-	link := chi.URLParam(r, "link")
-	log.Println("test1", link)
 
+	link := chi.URLParam(r, "link")
 	localizer := GetLocalizer(r)
-	//var tmplFile = "templates/page/default.html"
-	//tmpl, err := template.New(tmplFile).ParseFS(app.templateFS, tmplFile)
-	templateFile := "register-link.html"
-	view := template.Must(template.ParseFS(app.templateFS, "templates/page/*"))
+
+	if localizer == nil {
+		app.ServerLogByRequest(r, nil, DEFAULT_ERROR, true, "")
+		app.RenderError(r, w, &PageError{Message: DEFAULT_ERROR})
+		return
+	}
 
 	errMsgLinkInvalid, _ := localizer.Localize(&i18n.LocalizeConfig{
 		DefaultMessage: &i18n.Message{
@@ -184,13 +194,12 @@ func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 
+	logrus.Print("link")
+	logrus.Print(link)
 	linkDec, err := tools.DecryptBase64(link, app.conf.EncryptKey)
 	if err != nil {
-		page := &Page{
-			ErrorMessage: &errMsgLinkInvalid,
-		}
-		logrus.Error(err)
-		app.ExecuteTemplate(w, r, view, templateFile, page)
+		app.ServerLogByRequest(r, err, errMsgLinkInvalid, true, "tools.DecryptBase64(link, app.conf.EncryptKey)")
+		app.RenderError(r, w, &PageError{Message: errMsgLinkInvalid})
 		return
 	}
 
@@ -198,21 +207,15 @@ func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal([]byte(linkDec), linkUser)
 	if err != nil {
-		page := &Page{
-			ErrorMessage: &errMsgLinkInvalid,
-		}
-		logrus.Error(err)
-		app.ExecuteTemplate(w, r, view, templateFile, page)
+		app.ServerLogByRequest(r, err, errMsgLinkInvalid, true, "json.Unmarshal([]byte(linkDec), linkUser)")
+		app.RenderError(r, w, &PageError{Message: errMsgLinkInvalid})
 		return
 	}
 
 	dbRegisterUser, err := repository.ReadRegisterUser(app.db, linkUser.ID)
 	if err != nil {
-		page := &Page{
-			ErrorMessage: &errMsgLinkInvalid,
-		}
-		logrus.Error(err)
-		app.ExecuteTemplate(w, r, view, templateFile, page)
+		app.ServerLogByRequest(r, err, errMsgLinkInvalid, true, "repository.ReadRegisterUser(app.db, linkUser.ID)")
+		app.RenderError(r, w, &PageError{Message: errMsgLinkInvalid})
 		return
 	}
 	if dbRegisterUser.UpdatedAt != linkUser.CreatedAt {
@@ -222,11 +225,8 @@ func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
 				Other: "the link is expired",
 			},
 		})
-		page := &Page{
-			ErrorMessage: &msg,
-		}
-		logrus.Error(errors.New("dbRegisterUser.UpdatedAt != linkUser.CreatedA"))
-		app.ExecuteTemplate(w, r, view, templateFile, page)
+		app.ServerLogByRequest(r, err, msg, false, "dbRegisterUser.UpdatedAt != linkUser.CreatedAt")
+		app.RenderError(r, w, &PageError{Message: msg})
 		return
 	}
 
@@ -235,14 +235,11 @@ func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			msg, _ := localizer.Localize(&i18n.LocalizeConfig{
 				DefaultMessage: &i18n.Message{
-					ID: DEFAULT_MESSAGE_COMMON_SERVER_ERROR,
+					ID: LOCALE_MSG_ID__COMMON_SERVER_ERROR,
 				},
 			})
-			page := &Page{
-				ErrorMessage: &msg,
-			}
-			logrus.Error(err)
-			app.ExecuteTemplate(w, r, view, templateFile, page)
+			app.ServerLogByRequest(r, err, msg, true, "repository.GetUserByEmail(app.db, dbRegisterUser.Email)")
+			app.RenderError(r, w, &PageError{Message: msg})
 			return
 		}
 	}
@@ -255,12 +252,9 @@ func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
 				Other: "user alread exists",
 			},
 		})
-		page := &Page{
-			ErrorMessage: &msg,
-		}
-		logrus.Error(errors.New(" dbUser != nil && dbUser.Email == dbRegisterUser.Email"))
+		app.ServerLogByRequest(r, nil, msg, true, "dbUser != nil && dbUser.Email == dbRegisterUser.Email")
+		app.RenderError(r, w, &PageError{Message: msg})
 
-		app.ExecuteTemplate(w, r, view, templateFile, page)
 		return
 	}
 
@@ -269,18 +263,18 @@ func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		msg, _ := localizer.Localize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID: DEFAULT_MESSAGE_COMMON_SERVER_ERROR,
+				ID: LOCALE_MSG_ID__COMMON_SERVER_ERROR,
 			},
 		})
-		page := &Page{
-			ErrorMessage: &msg,
-		}
-		logrus.Error(err)
+		app.ServerLogByRequest(r, err, msg, true, "repository.CreateUser(app.db, dbUser)")
+		app.RenderError(r, w, &PageError{Message: msg})
 
-		app.ExecuteTemplate(w, r, view, templateFile, page)
 		return
 	}
-	_ = repository.DeleteRegisterUser(app.db, dbRegisterUser.ID)
+	err = repository.DeleteRegisterUser(app.db, dbRegisterUser.ID)
+	if err != nil {
+		app.ServerLogByRequest(r, err, "", true, "repository.DeleteRegisterUser(app.db, dbRegisterUser.ID)")
+	}
 
 	msg, _ := localizer.Localize(&i18n.LocalizeConfig{
 		DefaultMessage: &i18n.Message{
@@ -288,11 +282,10 @@ func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
 			Other: "successful, you can login now!",
 		},
 	})
-	page := &Page{
+	page := Page{
 		Message: &msg,
 	}
-
-	app.ExecuteTemplate(w, r, view, templateFile, page)
+	app.RenderPage(r, w, &page)
 
 }
 
@@ -303,27 +296,27 @@ func (app *App) RefreshLoginToken(w http.ResponseWriter, r *http.Request) {
 
 	logrus.Debug("body: %d", r.Context())
 	if err := json.NewDecoder(r.Body).Decode(&token); err != nil {
-		app.jsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__json_decode, "Error__json_decode", err)
+		app.JsonError(r,w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__json_decode, "Error__json_decode", err)
 		return
 	}
 
 	jwt := service.Jwt{}
 	user, sessionId, err := jwt.ValidateRefreshToken(token)
 	if err != nil {
-		app.jsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__invalid_token, "Page_auth__error__invalid_token", err)
+		app.JsonError(r,w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__invalid_token, "Page_auth__error__invalid_token", err)
 
 		return
 	}
 
 	token, err = jwt.CreateToken(*user, *sessionId)
 	if err != nil {
-		app.jsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__unable_create_access_token, "Page_auth__error__unable_create_access_token", err)
+		app.JsonError(r,w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Page_auth__error__unable_create_access_token, "Page_auth__error__unable_create_access_token", err)
 		return
 	}
 
 	err = json.NewEncoder(w).Encode(token)
 	if err != nil {
-		app.jsonError(w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__json_encode, "Error__json_encode", err)
+		app.JsonError(r,w, http.StatusUnprocessableEntity, app.GetLocale("").Text.Error__json_encode, "Error__json_encode", err)
 		return
 	}
 }

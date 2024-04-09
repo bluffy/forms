@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
 	"runtime"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"goapp/config"
 	"goapp/models"
 	"goapp/repository"
+	"goapp/util/tools"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -43,6 +45,9 @@ type Page struct {
 	ErrorMessage *string
 	Message      *string
 }
+type PageError struct {
+	Message string
+}
 
 type App struct {
 	validator  *validator.Validate
@@ -69,27 +74,34 @@ func New(
 	}
 }
 
-const DEFAULT_MESSAGE_COMMON_SERVER_ERROR = "Server.CommonError"
-const DEFAULT_MESSAGE_COMMON_SERVER_ERROR1 = "Server.CommonError1"
+const DEFAULT_ERROR = "ServerError"
+
+const LOCALE_MSG_ID__COMMON_SERVER_ERROR = "Server.CommonError"
 
 func loadDefaultMessages(bundle *i18n.Bundle) {
 	localizer := i18n.NewLocalizer(bundle)
 
 	_, _ = localizer.Localize(&i18n.LocalizeConfig{
 		DefaultMessage: &i18n.Message{
-			ID:    DEFAULT_MESSAGE_COMMON_SERVER_ERROR,
+			ID:    LOCALE_MSG_ID__COMMON_SERVER_ERROR,
 			Other: "Error on Server",
 		},
 	})
 
-	_, _ = localizer.Localize(&i18n.LocalizeConfig{
-		DefaultMessage: &i18n.Message{
-			ID:    DEFAULT_MESSAGE_COMMON_SERVER_ERROR1,
-			Other: "Error on Server1",
-		},
-	})
 }
 
+func GetDefaultMessageError(r *http.Request) string {
+	localizer := GetLocalizer(r)
+	if localizer == nil {
+		return DEFAULT_ERROR
+	}
+	msg, _ := localizer.Localize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID: LOCALE_MSG_ID__COMMON_SERVER_ERROR,
+		},
+	})
+	return msg
+}
 func GetDefaultMessage(localizer *i18n.Localizer, id string) string {
 	msg, _ := localizer.Localize(&i18n.LocalizeConfig{
 		DefaultMessage: &i18n.Message{
@@ -116,12 +128,6 @@ func (a *App) GetBundle() *i18n.Bundle {
 	return a.bundle
 }
 
-func (a *App) GetLocalizerFrom(r *http.Request, lang string) *i18n.Localizer {
-	accept := r.Header.Get("Accept-Language")
-	return i18n.NewLocalizer(a.bundle, lang, accept)
-
-}
-
 func GetLocalizer(r *http.Request) *i18n.Localizer {
 	return r.Context().Value(ContextLocalizerKey{}).(*i18n.Localizer)
 }
@@ -146,7 +152,7 @@ func (a *App) JsonErrorMessage(locConfig *i18n.LocalizeConfig, r *http.Request, 
 
 	var appError ErrResponse
 	if publicMessage == "" {
-		msg := GetDefaultMessage(GetLocalizer(r), DEFAULT_MESSAGE_COMMON_SERVER_ERROR)
+		msg := GetDefaultMessage(GetLocalizer(r), LOCALE_MSG_ID__COMMON_SERVER_ERROR)
 		appError.Error.Message = &msg
 	} else {
 		appError.Error.Message = &publicMessage
@@ -169,33 +175,21 @@ func (a *App) JsonErrorMessage(locConfig *i18n.LocalizeConfig, r *http.Request, 
 	w.Write(errorJson)
 }
 
-func (a *App) JsonError(w http.ResponseWriter, status int, publicMessage string, err error, doLog bool, optionalLoggingMessage string) {
-	commonError := "Error on Server"
-	_, fn, line, _ := runtime.Caller(1)
-	if doLog || a.conf.Debug {
+func (a *App) JsonError(r *http.Request, w http.ResponseWriter, status int, publicMessage string) {
 
-		logrus.WithFields(logrus.Fields{
-			"jsonError":      true,
-			"func":           fn,
-			"line":           fmt.Sprintf("%d", line),
-			"publicMessage":  publicMessage,
-			"loggingMessage": optionalLoggingMessage,
-			"httpsStatus":    status,
-		}).Error(err)
-
-	}
 	var appError ErrResponse
-	appError.Error.Message = &publicMessage
+	if publicMessage == "" {
+		commonError := GetDefaultMessageError(r)
+		appError.Error.Message = &commonError
+	} else {
+		appError.Error.Message = &publicMessage
+	}
 	w.WriteHeader(status)
 
 	errorJson, err := json.Marshal(appError)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"func":           fn,
-			"line":           fmt.Sprintf("%d", line),
-			"publicMessage":  publicMessage,
-			"loggingMessage": optionalLoggingMessage,
-		}).Error(err)
+		commonError := GetDefaultMessageError(r)
+		a.ServerLogByRequest(r, err, commonError, true, "json.Marshal(appError)")
 		fmt.Fprintf(w, `{"error": {"message": "%s"}}`, commonError)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -203,11 +197,107 @@ func (a *App) JsonError(w http.ResponseWriter, status int, publicMessage string,
 	w.Write(errorJson)
 }
 
+func (a *App) Render(w io.Writer, p Page) error {
+	templ, err := template.ParseFS(a.templateFS, "templates/*")
+	if err != nil {
+		return err
+	}
+
+	if err := templ.Execute(w, p); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) serverLog(err error, logMessage string) {
+	_, fn, line, _ := runtime.Caller(1)
+
+	fields := logrus.Fields{
+		"func":       fn,
+		"line":       fmt.Sprintf("%d", line),
+		"logMessage": logMessage,
+	}
+
+	logrus.WithFields(fields).Error(err)
+}
+
+func (a *App) ServerLogByRequest(r *http.Request, err error, publicMessage string, doLog bool, logMessage string) {
+	if doLog || a.conf.Debug {
+		_, fn, line, _ := runtime.Caller(1)
+
+		fields := logrus.Fields{
+			"func":       fn,
+			"line":       fmt.Sprintf("%d", line),
+			"logMessage": logMessage,
+			"PublicIP":   tools.ReadUserIP(r),
+			"Host":       r.Host,
+			"ApiPath":    r.URL.Path,
+		}
+		if publicMessage != "" {
+			fields["publicMessage"] = publicMessage
+		}
+		if publicMessage != "" {
+			fields["logMessage"] = logMessage
+		}
+		if a.conf.Debug {
+			fields["doLog"] = doLog
+		}
+
+		logrus.WithFields(fields).Error(err)
+	}
+}
+
+func (a *App) RenderError(r *http.Request, w io.Writer, p *PageError) {
+
+	if p == nil {
+		p = &PageError{
+			Message: DEFAULT_ERROR,
+		}
+	}
+
+	templ, tmpErr := template.ParseFS(a.templateFS, "templates/page/*")
+
+	if tmpErr != nil {
+		a.ServerLogByRequest(r, tmpErr, "", true, "")
+		w.Write([]byte(GetDefaultMessageError(r)))
+	}
+
+	if tmpErr := templ.ExecuteTemplate(w, "error.gohtml", p); tmpErr != nil {
+		a.ServerLogByRequest(r, tmpErr, "", true, "")
+		w.Write([]byte(GetDefaultMessageError(r)))
+	}
+
+}
+func (a *App) RenderPage(r *http.Request, w io.Writer, p *Page) {
+
+	if p == nil {
+		msg := GetDefaultMessageError(r)
+		a.ServerLogByRequest(r, nil, msg, true, "p *Page is null")
+		w.Write([]byte(msg))
+	}
+
+	templ, tmpErr := template.ParseFS(a.templateFS, "templates/page/*")
+
+	if tmpErr != nil {
+		msg := GetDefaultMessageError(r)
+		a.ServerLogByRequest(r, tmpErr, msg, true, "")
+		w.Write([]byte(msg))
+	}
+
+	if tmpErr := templ.ExecuteTemplate(w, "error.gohtml", p); tmpErr != nil {
+		msg := GetDefaultMessageError(r)
+		a.ServerLogByRequest(r, tmpErr, msg, true, "")
+		w.Write([]byte(msg))
+	}
+
+}
+
 func (a *App) ExecuteTemplate(w http.ResponseWriter, r *http.Request, view *template.Template, templateFile string, data any) {
 	err := view.ExecuteTemplate(w, templateFile, data)
 	if err != nil {
 		_, fn, line, _ := runtime.Caller(1)
-		msg := GetDefaultMessage(GetLocalizer(r), DEFAULT_MESSAGE_COMMON_SERVER_ERROR)
+		msg := GetDefaultMessage(GetLocalizer(r), LOCALE_MSG_ID__COMMON_SERVER_ERROR)
 		logrus.WithFields(logrus.Fields{
 			"func":           fn,
 			"line":           fmt.Sprintf("%d", line),
@@ -315,8 +405,8 @@ func (app *App) checkForm(localizer *i18n.Localizer, form interface{}, w http.Re
 	})
 
 	if err := json.NewDecoder(r.Body).Decode(form); err != nil {
-
-		app.JsonError(w, http.StatusUnprocessableEntity, msgFromError, err, false, "")
+		app.ServerLogByRequest(r, err, msgFromError, false, "json.NewDecoder(r.Body).Decode(form)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msgFromError)
 		return true
 	}
 
@@ -324,12 +414,14 @@ func (app *App) checkForm(localizer *i18n.Localizer, form interface{}, w http.Re
 		logrus.Warn(err)
 		resp := app.formErrors(localizer, err, errorMessage)
 		if resp == nil {
-			app.JsonError(w, http.StatusUnprocessableEntity, msgFromError, err, false, "")
+			app.ServerLogByRequest(r, err, msgFromError, false, "app.formErrors(localizer, err, errorMessage)")
+			app.JsonError(r, w, http.StatusUnprocessableEntity, msgFromError)
 			return true
 		}
 		respBody, err := json.Marshal(resp)
 		if err != nil {
-			app.JsonError(w, http.StatusInternalServerError, GetDefaultMessage(localizer, DEFAULT_MESSAGE_COMMON_SERVER_ERROR), err, false, "")
+			app.ServerLogByRequest(r, err, msgFromError, true, "json.Marshal(resp)")
+			app.JsonError(r, w, http.StatusInternalServerError, "")
 			return true
 		}
 		w.WriteHeader(http.StatusUnprocessableEntity)
