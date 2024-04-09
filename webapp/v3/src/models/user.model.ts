@@ -2,6 +2,9 @@ export interface UserLoginForm {
     email: string;
     password: string;
   }
+  export interface UserNewPasswordForm {
+    email: string;
+  }
   
 
 

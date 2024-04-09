@@ -7,12 +7,24 @@ Api.HandlerRegister.Error.ConfirmationMailNotSend:
 Api.HandlerRegister.Error.UserAlreadyRegistered:
   hash: sha1-d5d968b8708e2dd148502eb544ae7407834f7c7f
   other: user alread exists
-Api.HandlerRgisterLink.User_already_registered:
+Api.HandlerRegister.RegisteringSuccessful:
+  hash: sha1-8d539c8610058f3b2e0cdaf1ac437ad9b66c4115
+  other: register was successful, check your email please!t
+Api.HandlerRegisterLink.Message_user_created:
+  hash: sha1-761777b28688229b2f8475aaae7c1e0a4535421d
+  other: successful, you can login now!
+Api.HandlerRegisterLink.Register_link_is_expired:
+  hash: sha1-5120f987db046a4df7dc21d13502d7f8858dce1e
+  other: the link is expired
+Api.HandlerRegisterLink.Register_link_is_invalid:
+  hash: sha1-5a800a670ed82f1ef7f6739b00b3ef97e3d8fe13
+  other: the link is invalid or expired
+Api.HandlerRegisterLink.User_already_registered:
   hash: sha1-d5d968b8708e2dd148502eb544ae7407834f7c7f
   other: user alread exists
+Api.SessionCheck.sessen_not_exists_or_expire:
+  hash: sha1-eb37ccfac7ea1eac8d74d88fe1506edc2d16b2ed
+  other: session not exists or expired!
 FormsValidator.FormResponseError:
   hash: sha1-c657d3741da5d9c928a3b432d29700bcd7464a85
   other: form has an error
-Server.CommonError1:
-  hash: sha1-29d3863678f0f4a50ecae9e3bb54097eecad898c
-  other: Error on Server1

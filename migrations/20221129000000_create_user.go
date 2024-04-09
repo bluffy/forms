@@ -41,16 +41,17 @@ func Up_20221129000000(ctx context.Context, txn *sql.Tx) error {
 		sql = `
 			CREATE TABLE IF NOT EXISTS users
 			(
-				id             CHAR(27)     NOT NULL,
-				email          VARCHAR(255) NOT NULL,
-				password       VARCHAR(100) NOT NULL,
-				is_admin       TINYINT(1)   NULL,
-				first_name	   VARCHAR2(30) NULL,
-				last_name	   VARCHAR2(30) NULL,
-				newsletter	   TINYINT(1)   NULL,
-				created_at     TIMESTAMP    NOT NULL,
-				updated_at     TIMESTAMP    NULL,
-				deleted_at     TIMESTAMP    NULL,
+				id             		 CHAR(27)     NOT NULL,
+				email          		 VARCHAR(255) NOT NULL,
+				password       		 VARCHAR(100) NOT NULL,
+				is_admin       		 TINYINT(1)   NULL,
+				first_name	   		 VARCHAR2(30) NULL,
+				last_name	   		 VARCHAR2(30) NULL,
+				newsletter	         TINYINT(1)   NULL,
+				new_password_request TIMESTAMP 	  NULL,
+				created_at     	     TIMESTAMP    NOT NULL,
+				updated_at     	     TIMESTAMP    NULL,
+				deleted_at     		 TIMESTAMP    NULL,
 				PRIMARY KEY (ID),
 				UNIQUE (email)
 			);`

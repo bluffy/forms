@@ -2,7 +2,13 @@ Api.HandlerLogin.Error.UserNotExits: user & password not matched
 Api.HandlerRegister.Error.ConfirmationMailNotSend: no confirmation email could be
   sent
 Api.HandlerRegister.Error.UserAlreadyRegistered: user alread exists
-Api.HandlerRgisterLink.User_already_registered: user alread exists
+Api.HandlerRegister.RegisteringSuccessful: register was successful, check your email
+  please!t
+Api.HandlerRegisterLink.Message_user_created: successful, you can login now!
+Api.HandlerRegisterLink.Register_link_is_expired: the link is expired
+Api.HandlerRegisterLink.Register_link_is_invalid: the link is invalid or expired
+Api.HandlerRegisterLink.User_already_registered: user alread exists
+Api.SessionCheck.sessen_not_exists_or_expire: session not exists or expired!
 FormsValidator.AlphaSpace: can only contain alphabetic and space characters
 FormsValidator.Date: imust be a valid date
 FormsValidator.Default: 'something wrong: {{.Tag}}'
@@ -19,4 +25,3 @@ HelloWorld6:
   one: 'Hallo 1 {{.PluralCount}} '
   other: 'Hell  '
 Server.CommonError: Error on Server
-Server.CommonError1: Error on Server1

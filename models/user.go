@@ -59,6 +59,7 @@ type RegisterUserLink struct {
 	ID        string
 	CreatedAt time.Time
 }
+
 type UserPasswordLink struct {
 	ID                 string
 	NewPasswordRequest time.Time

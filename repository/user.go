@@ -42,6 +42,14 @@ func DeleteRegisterUser(db *gorm.DB, id string) error {
 	return nil
 }
 
+func UpdateUser(db *gorm.DB, obj *models.User) (*models.User, error) {
+
+	if err := db.Updates(obj).Error; err != nil {
+		return nil, err
+	}
+	return obj, nil
+}
+
 func CreateRegisterUser(db *gorm.DB, obj *models.RegisterUser) (*models.RegisterUser, error) {
 	if obj.ID == "" {
 		obj.ID = ksuid.New().String()

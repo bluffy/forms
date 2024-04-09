@@ -1,49 +1,50 @@
 <template>
     <div>
-        <div v-if="formValues">
-            <Form @submit="onSubmit" :initial-values="formValues">
+        <div v-if="formValuesLogin">
+            <Form @submit="onSubmitLogin" :initial-values="formValuesLogin">
                 <div class="mb-3 row">
-                    <div v-for="field in fields">
-                        <div class="col-12">
-                            <label :for="field.name" class="form-label">{{ field.label }}</label>
-                            <Field :id="field.name" :type="field.type" :name="field.name" class="form-control"
-                                :placeholder="field.placeholder" />
-                            <div class="text-danger">
-                                <ErrorMessage :name="field.name" />&nbsp;
-                            </div>
-                        </div>
-                    </div>
+                        <Fields :fields="fieldsLogin"></Fields>
                     <div class="col-12">
+                        <router-link to="/forgot_password">Recover Password</router-link>
+                    </div>
+                    <div class="col-12 mt-3">
                         <button class="btn btn-primary" type="submit">Submit form</button>
                     </div>
                 </div>
             </Form>
         </div>
+  
         <AlertDialog ref="dialog"></AlertDialog>
     </div>
 </template>
 <script lang="ts" setup>
 
-import { Form, Field, ErrorMessage } from 'vee-validate';
+import { Form } from 'vee-validate';
 import { ref, onMounted } from 'vue'
 import { genResponseError } from "../utils/errorMessage";
 import { getPropertyName } from "../utils/helper";
 import type { PageNoContent } from "../models/page.model";
 import router from "../router";
+import Fields from "../components/Fields.vue";
 import AlertDialog from "../components/AlertDialog.vue";
 import ApiService from '../services/api.service'
 import type { UserLoginForm } from "../models/user.model";
 
 
 import { useRoute } from 'vue-router'
+import { FormField } from '../models/app.model';
 const dialog = ref()
 
+
+
 const route = useRoute();
-const formValues = ref(null as UserLoginForm);
-const fields =ref([]);
+const formValuesLogin = ref(null as UserLoginForm);
+const fieldsLogin = ref(null as FormField[]);
 
 
-function onSubmit(values: any, actions: any) {
+
+
+function onSubmitLogin(values: any, actions: any) {
     return ApiService.postPage("/user/login", values).then(
         (page: PageNoContent) => {
             if (page.status != 204) {
@@ -73,27 +74,28 @@ function onSubmit(values: any, actions: any) {
     );
 };
 
-
 onMounted(() => {
-    formValues.value = {
+    formValuesLogin.value = {
         email: "",
         password: ""
     }
 
-  
-    fields.value = [
-    {
-        label: "Email",
-        name:  getPropertyName(formValues.value, a => a.email),
-        type: "text",
-        placeholder: "max@mustermann.de"
-    },
-    {
-        label: "Password",
-        name:   getPropertyName(formValues.value, a => a.password),
-        type: "password"
-    }
-]
+
+    fieldsLogin.value = [
+        {
+            label: "Email",
+            name: getPropertyName(formValuesLogin.value, a => a.email),
+            type: "text",
+            placeholder: "max@mustermann.de"
+        },
+        {
+            label: "Password",
+            name: getPropertyName(formValuesLogin.value, a => a.password),
+            type: "password"
+        }
+    ]
+
+
 
 
 

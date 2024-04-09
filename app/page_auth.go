@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
+	"time"
 
 	"goapp/models"
 	"goapp/repository"
@@ -159,8 +161,8 @@ func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 	})
 	response.Message = &msg
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		app.ServerLogByRequest(r, err, "", true, "form.ToModel()")
-		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
+		app.ServerLogByRequest(r, err, "", true, "json.NewEncoder(w).Encode(response);")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, GetDefaultMessageError(r))
 	}
 
 }
@@ -335,4 +337,103 @@ func (app *App) RefreshLoginToken(w http.ResponseWriter, r *http.Request) {
 // @Router       /bl-api/page/v1/user/forgot_password[post]
 func (app *App) HandlerGeneratePasswordLink(w http.ResponseWriter, r *http.Request) {
 
+	localizer := GetLocalizer(r)
+
+	type UserPasswordLinkForm struct {
+		Email string `json:"email" form:"required,max=255,email"`
+	}
+
+	form := &UserPasswordLinkForm{}
+	if app.checkForm(localizer, form, w, r, nil) {
+		return
+	}
+
+	user, err := repository.GetUserByEmail(app.db, form.Email)
+	if err != nil {
+		msg, _ := localizer.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:    "Api.HandlerGeneratePasswordLink.Error.UserNotExits",
+				Other: "user not exists",
+			},
+		})
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			app.ServerLogByRequest(r, err, msg, false, "")
+		}
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
+		return
+	}
+
+	now := time.Now()
+	user.NewPasswordRequest = &now
+	user, err = repository.UpdateUser(app.db, user)
+	if err != nil {
+		msg := GetDefaultMessageError(r)
+		app.ServerLogByRequest(r, err, msg, true, msg)
+		app.JsonError(r, w, http.StatusUnprocessableEntity, GetDefaultMessageError(r))
+		return
+	}
+
+	passwordLink := &models.UserPasswordLink{
+		ID:                 user.ID,
+		NewPasswordRequest: *user.NewPasswordRequest,
+	}
+
+	passwordLinkBytes, err := json.Marshal(passwordLink)
+	if err != nil {
+		app.ServerLogByRequest(r, err, "", true, "json.Marshal(userLink)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
+		return
+	}
+
+	userLinkEncrypted, err := tools.EncryptBase64(string(passwordLinkBytes), app.conf.EncryptKey)
+	if err != nil {
+		app.ServerLogByRequest(r, err, "", true, "tools.EncryptBase64(string(userLinkBytes)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
+	}
+
+	msgTitle, _ := localizer.Localize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID:    "Api.HandlerGeneratePasswordLink.Mail.Subject",
+			Other: "recover your account",
+		},
+	})
+	msgText, _ := localizer.Localize(&i18n.LocalizeConfig{
+		TemplateData: map[string]interface{}{
+			"Name":        strings.TrimSpace(user.FirstName + " " + user.LastName),
+			"RecoverLink": app.conf.Server.PublicURL + "/p/user/new_password/" + userLinkEncrypted,
+		},
+		DefaultMessage: &i18n.Message{
+			ID:    "Api.HandlerGeneratePasswordLink.Mail.Text",
+			Other: "Hello {{.Name}},\n\nPlease click the following link within 3 hours to restore your account:\n\n{{.RecoverLink}}\n\nlink is not working? Try copying and pasting it into the browser.",
+		},
+	})
+
+	err = app.sendMail(true, msgTitle, msgText, "", user.Email)
+	if err != nil {
+		msg, _ := localizer.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:    "Api.HandlerRegister.Error.ConfirmationMailNotSend",
+				Other: "no confirmation email could be sent",
+			},
+		})
+		app.ServerLogByRequest(r, err, msg, true, "app.sendMail()")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
+		return
+	}
+
+	var response ApiPageResponse
+	msg, _ := localizer.Localize(&i18n.LocalizeConfig{
+		TemplateData: map[string]interface{}{
+			"UserEmail": user.Email,
+		},
+		DefaultMessage: &i18n.Message{
+			ID:    "Api.HandlerRegister.RegisteringSuccessful",
+			Other: "A confirmation email was sent to {{.UserEmail}}. Please check your mailbox within 3 hours to complete the restore process.",
+		},
+	})
+	response.Message = &msg
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		app.ServerLogByRequest(r, err, "", true, "json.NewEncoder(w).Encode(response);")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, GetDefaultMessageError(r))
+	}
 }
