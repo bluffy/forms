@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"goapp/config"
 	"goapp/lang"
+	"goapp/models"
 	"net/smtp"
 	"os"
 	"strconv"
@@ -32,6 +33,27 @@ type Mail struct {
 	ReadReceipt []string
 	Attachments []MailAttachment
 	locale      lang.Locale
+}
+
+func (m *Mail) FillFromModel(model *models.Mail) {
+
+	m.To = model.Recipient
+	m.From = model.Sender
+	m.Subject = model.Subject
+
+	if model.Cc != nil {
+		m.Cc = strings.Split(*model.Cc, ",")
+	}
+	if model.Bc != nil {
+		m.Bc = strings.Split(*model.Bc, ",")
+	}
+	if model.Text != nil {
+		m.Text = *model.Text
+	}
+	if model.Html != nil {
+		m.HTML = *model.Html
+	}
+
 }
 
 // Send sendet eine Email

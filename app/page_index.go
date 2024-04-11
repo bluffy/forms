@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"gitea.com/go-chi/session"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/sirupsen/logrus"
 )
 
@@ -21,20 +20,29 @@ import (
 // @Router       /bl-api/page/v1/ [get]
 func (app *App) PageIndex(res http.ResponseWriter, req *http.Request) {
 	//app.printError(res, http.StatusInternalServerError, 200, nil, "")
+	/*
+		localizer := req.Context().Value(ContextLocalizerKey{}).(*i18n.Localizer)
 
-	localizer := req.Context().Value(ContextLocalizerKey{}).(*i18n.Localizer)
-	msg, _ := localizer.Localize(&i18n.LocalizeConfig{
-		PluralCount: 2,
-		DefaultMessage: &i18n.Message{
-			ID:          "HelloWorld6",
-			Many:        "hallo viele ",
-			Few:         "ein ppar  !",
-			Other:       "Hell  ",
-			Description: "beschreibung",
-			One:         "Hallo 1 {{.PluralCount}} ",
-		},
-	})
+			msg, _ := localizer.Localize(&i18n.LocalizeConfig{
+				PluralCount: 2,
+				DefaultMessage: &i18n.Message{
+					ID:          "HelloWorld7",
+					Many:        "hallo viele ",
+					Few:         "ein ppar  !",
+					Other:       "Hell 33 ",
+					Description: "beschreibung",
+					One:         "Hallo 1 {{.PluralCount}} ",
+				},
+			})
 
+		msg, _ := localizer.Localize(&i18n.LocalizeConfig{
+			MessageID: "HelloWorld7",
+			TemplateData: map[string]string{
+				"Test": "2",
+			},
+		})
+	*/
+	msg := "TEST"
 	sessionStore := req.Context().Value(ContextSessionStoreKey{}).(*session.Store)
 
 	sess := *sessionStore
@@ -51,6 +59,6 @@ func (app *App) PageIndex(res http.ResponseWriter, req *http.Request) {
 	//	func (m *Manager) Start(resp, req *http.Request) (RawStore, error)
 
 	//logrus.Printf("%+v\n", mysess.)
-	res.Write([]byte("{\"OK\": true}"))
+	res.Write([]byte("{\"OK\": \"" + msg + "\"}"))
 
 }

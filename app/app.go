@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"time"
 
+	"goapp/app/service"
 	"goapp/config"
 	"goapp/models"
 	"goapp/repository"
@@ -392,7 +393,9 @@ func (a *App) sendMail(adhoc bool, mailSubject string, mailText string, mailHtml
 	}
 
 	if adhoc {
-		serviceMail := dbMail.ToServiceMail()
+
+		serviceMail := &service.Mail{}
+		serviceMail.FillFromModel(dbMail)
 		logMsg, err := serviceMail.SendMail(&a.conf.Smtp)
 
 		if err != nil {

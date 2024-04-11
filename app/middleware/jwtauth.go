@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"goapp/app"
-	"goapp/service"
+	"goapp/app/service"
 
 	"github.com/sirupsen/logrus"
 )

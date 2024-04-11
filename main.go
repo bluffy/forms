@@ -77,6 +77,11 @@ func main() {
 
 	bundle := i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("yaml", yaml.Unmarshal)
+	_, err = bundle.LoadMessageFileFS(LocaleFS, "i18n/active.en.yaml")
+	if err != nil {
+		logrus.Fatal(err)
+		return
+	}
 	_, err = bundle.LoadMessageFileFS(LocaleFS, "i18n/active.de.yaml")
 	if err != nil {
 		logrus.Fatal(err)

@@ -1,14 +1,24 @@
+Api.HandlerGeneratePasswordLink.Error.UserNotExits: user not exists
+Api.HandlerGeneratePasswordLink.Mail.Subject: recover your account
+Api.HandlerGeneratePasswordLink.Mail.Text: |-
+  Hello {{.Name}},
+
+  Please click the following link within 3 hours to restore your account:
+
+  {{.RecoverLink}}
+
+  link is not working? Try copying and pasting it into the browser.
 Api.HandlerLogin.Error.UserNotExits: user & password not matched
 Api.HandlerRegister.Error.ConfirmationMailNotSend: no confirmation email could be
   sent
 Api.HandlerRegister.Error.UserAlreadyRegistered: user alread exists
-Api.HandlerRegister.RegisteringSuccessful: register was successful, check your email
-  please!t
+Api.HandlerRegister.RegisteringSuccessful: A confirmation email was sent to {{.UserEmail}}.
+  Please check your mailbox within 3 hours to complete the restore process.
 Api.HandlerRegisterLink.Message_user_created: successful, you can login now!
 Api.HandlerRegisterLink.Register_link_is_expired: the link is expired
 Api.HandlerRegisterLink.Register_link_is_invalid: the link is invalid or expired
 Api.HandlerRegisterLink.User_already_registered: user alread exists
-Api.SessionCheck.sessen_not_exists_or_expire: session not exists or expired!
+Api.SessionCheck.sessen_not_exists_or_expire: session not exists or expired!!
 FormsValidator.AlphaSpace: can only contain alphabetic and space characters
 FormsValidator.Date: imust be a valid date
 FormsValidator.Default: 'something wrong: {{.Tag}}'
@@ -25,3 +35,4 @@ HelloWorld6:
   one: 'Hallo 1 {{.PluralCount}} '
   other: 'Hell  '
 Server.CommonError: Error on Server
+HelloWorld7: "test12 {{ .Test }} 12"
