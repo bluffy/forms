@@ -34,5 +34,5 @@ HelloWorld6:
   many: 'hallo viele '
   one: 'Hallo 1 {{.PluralCount}} '
   other: 'Hell  '
+HelloWorld7: test12 12
 Server.CommonError: Error on Server
-HelloWorld7: "test12 {{ .Test }} 12"
