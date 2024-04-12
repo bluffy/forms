@@ -6,20 +6,31 @@ import NotFound from '../views/NotFound.vue'
 
 
 const routes = [
+
+  {
+    name: "register_link",
+    path: "/user/register/:link",
+    component: defineAsyncComponent(() => import('../views/Redirects.vue'))
+  },
   {
     name: "register",
-    path: "/register",
-    component: defineAsyncComponent(() => import('../views/Register.vue'))
+    path: "/user/register",
+    component: defineAsyncComponent(() => import('../views/auth/Register.vue'))
   },
   {
-    name: "forgot_password",
-    path: "/forgot_password",
-    component: defineAsyncComponent(() => import('../views/ForgotPassword.vue'))
-  },
+    name: "forgot_password_recover_form",
+    path: "/user/forgot_password",
+    component: defineAsyncComponent(() => import('../views/auth/ForgotPassword.vue'))
+  },  
+  {
+    name: "forgot_password_link",
+    path: "/user/forgot_password/:link",
+    component: defineAsyncComponent(() => import('../views/auth/ForgotPassword.vue'))
+  },  
   {
     name: "login",
     path: "/login",
-    component: defineAsyncComponent(() => import('../views/Login.vue'))
+    component: defineAsyncComponent(() => import('../views/auth/Login.vue'))
   },
   {
     name: "dashboard",

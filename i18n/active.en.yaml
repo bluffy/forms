@@ -1,3 +1,5 @@
+Api.HandlerGeneratePasswordLink.Error.ConfirmationMailNotSend: no confirmation email
+  could be sent
 Api.HandlerGeneratePasswordLink.Error.UserNotExits: user not exists
 Api.HandlerGeneratePasswordLink.Mail.Subject: recover your account
 Api.HandlerGeneratePasswordLink.Mail.Text: |-
@@ -8,17 +10,26 @@ Api.HandlerGeneratePasswordLink.Mail.Text: |-
   {{.RecoverLink}}
 
   link is not working? Try copying and pasting it into the browser.
+Api.HandlerGeneratePasswordLink.Successful: A confirmation email was sent to **{{.UserEmail}}**.
+  Please check your mailbox within 3 hours to complete the restore process.
 Api.HandlerLogin.Error.UserNotExits: user & password not matched
 Api.HandlerRegister.Error.ConfirmationMailNotSend: no confirmation email could be
   sent
 Api.HandlerRegister.Error.UserAlreadyRegistered: user alread exists
-Api.HandlerRegister.RegisteringSuccessful: A confirmation email was sent to {{.UserEmail}}.
-  Please check your mailbox within 3 hours to complete the restore process.
+Api.HandlerRegister.Mail.RegistrationLink: |-
+  Hello {{.Name}},
+  Please click the following link within 3 hours to register your account:
+
+  {{.RegisterLink}}
+
+  link is not working? Try copying and pasting it into the browser.
+Api.HandlerRegister.RegisteringSuccessful: A confirmation email was sent to **{{.UserEmail}}**.
+  Please check your mailbox within 3 hours to complete the registration process.
 Api.HandlerRegisterLink.Message_user_created: successful, you can login now!
 Api.HandlerRegisterLink.Register_link_is_expired: the link is expired
 Api.HandlerRegisterLink.Register_link_is_invalid: the link is invalid or expired
 Api.HandlerRegisterLink.User_already_registered: user alread exists
-Api.SessionCheck.sessen_not_exists_or_expire: session not exists or expired!!
+Api.SessionCheck.sessen_not_exists_or_expire: session not exists or expired!
 FormsValidator.AlphaSpace: can only contain alphabetic and space characters
 FormsValidator.Date: imust be a valid date
 FormsValidator.Default: 'something wrong: {{.Tag}}'
@@ -28,11 +39,6 @@ FormsValidator.Max: must be a maximum of {{.Chars}} in length
 FormsValidator.Min: must be a minimum of {{.Chars}} in length
 FormsValidator.Required: is required
 FormsValidator.URL: must be a valid URL
-HelloWorld6:
-  description: beschreibung
-  few: ein ppar  !
-  many: 'hallo viele '
-  one: 'Hallo 1 {{.PluralCount}} '
-  other: 'Hell  '
-HelloWorld7: test12 12
-Server.CommonError: Error on Server
+Server.CommonError:
+  one: 'Error on Server: {{.Text}}'
+  other: Error on Server

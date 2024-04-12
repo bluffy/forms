@@ -15,3 +15,11 @@ export interface PageRegister {
 
 
 
+
+export interface PageMessage {
+    status: number
+    data?: any
+}
+
+
+

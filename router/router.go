@@ -9,8 +9,10 @@ import (
 	"goapp/app"
 	"goapp/app/middleware"
 
+	chi_middleware "github.com/go-chi/chi/v5/middleware"
+
 	"gitea.com/go-chi/session"
-	chi "github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -78,6 +80,9 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 	*/
 
 	r := chi.NewRouter()
+	r.Use(chi_middleware.Heartbeat("/ping"))
+	r.Use(chi_middleware.RealIP)
+
 	//r.Use(session.Sessioner())
 	r.Use(session.Sessioner(session.Options{
 		Provider:       "file",
@@ -151,7 +156,7 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 
 	r.Route("/p", func(r chi.Router) {
 		r.Route("/user", func(r chi.Router) {
-			r.Get("/register/{link}", a.HandlerRegisterLink)
+			//		r.Get("/register/{link}", a.HandlerRegisterLinkGet)
 		})
 	})
 
@@ -165,14 +170,24 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 					r.Use(middleware.ContentTypeJson)
 					r.Use(middleware.CheckUserLogin(a))
 					r.Get("/", a.PageIndex)
+
 				})
 				r.Route("/user", func(r chi.Router) {
+
 					r.Group(func(r chi.Router) {
 						r.Use(middleware.ContentTypeJson)
 						r.Post("/login", a.HandlerLogin)
+						r.Post("/register/link", a.HanderCreateUserFromMailLink)
 						r.Post("/register", a.HandlerRegister)
-						r.Post("/forgot_password", a.HandlerGeneratePasswordLink)
+						r.Post("/forgot_password/link", a.HandlerCreateNewPasswordFromMailLink)
+						r.Post("/forgot_password", a.HandlerGenerateMailWithPasswordLink)
 					})
+					r.Group(func(r chi.Router) {
+						r.Use(middleware.ContentTypeJson)
+						r.Use(middleware.CheckUserLogin(a))
+						r.Get("/", a.HanldeCheckUser)
+					})
+
 				})
 
 			})

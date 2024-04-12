@@ -1,0 +1,64 @@
+Api.HandlerGeneratePasswordLink.Error.ConfirmationMailNotSend:
+  hash: sha1-261e65acdd20ec877f52e4a8b65edd409422ccf2
+  other: no confirmation email could be sent
+Api.HandlerGeneratePasswordLink.Error.UserNotExits:
+  hash: sha1-3df52028ec4aeeec19b5e7cd524c6a4484910ec2
+  other: user not exists
+Api.HandlerGeneratePasswordLink.Mail.Subject:
+  hash: sha1-ec6c6d84697eea9105e978415043a7d5f94f54f1
+  other: recover your account
+Api.HandlerGeneratePasswordLink.Mail.Text:
+  hash: sha1-2c2841f084927d8f9abc33778df7ef68e71a2641
+  other: |-
+    Hello {{.Name}},
+
+    Please click the following link within 3 hours to restore your account:
+
+    {{.RecoverLink}}
+
+    link is not working? Try copying and pasting it into the browser.
+Api.HandlerGeneratePasswordLink.Successful:
+  hash: sha1-827056a640d551f0b6a97504759b595b35bf9330
+  other: A confirmation email was sent to **{{.UserEmail}}**. Please check your mailbox
+    within 3 hours to complete the restore process.
+Api.HandlerLogin.Error.UserNotExits:
+  hash: sha1-64b1f909c4aa7069d12c4535b50f518239d5f523
+  other: user & password not matched
+Api.HandlerRegister.Error.ConfirmationMailNotSend:
+  hash: sha1-261e65acdd20ec877f52e4a8b65edd409422ccf2
+  other: no confirmation email could be sent
+Api.HandlerRegister.Error.UserAlreadyRegistered:
+  hash: sha1-d5d968b8708e2dd148502eb544ae7407834f7c7f
+  other: user alread exists
+Api.HandlerRegister.Mail.RegistrationLink:
+  hash: sha1-a07b415de0993ead5a316669d877cc00db2ed849
+  other: |-
+    Hello {{.Name}},
+    Please click the following link within 3 hours to register your account:
+
+    {{.RegisterLink}}
+
+    link is not working? Try copying and pasting it into the browser.
+Api.HandlerRegister.RegisteringSuccessful:
+  hash: sha1-d80921029a3d791cc75deaf0151bd059965a6407
+  other: A confirmation email was sent to **{{.UserEmail}}**. Please check your mailbox
+    within 3 hours to complete the registration process.
+Api.HandlerRegisterLink.Message_user_created:
+  hash: sha1-761777b28688229b2f8475aaae7c1e0a4535421d
+  other: successful, you can login now!
+Api.HandlerRegisterLink.Register_link_is_expired:
+  hash: sha1-5120f987db046a4df7dc21d13502d7f8858dce1e
+  other: the link is expired
+Api.HandlerRegisterLink.Register_link_is_invalid:
+  hash: sha1-5a800a670ed82f1ef7f6739b00b3ef97e3d8fe13
+  other: the link is invalid or expired
+Api.HandlerRegisterLink.User_already_registered:
+  hash: sha1-d5d968b8708e2dd148502eb544ae7407834f7c7f
+  other: user alread exists
+Api.SessionCheck.sessen_not_exists_or_expire:
+  hash: sha1-eb37ccfac7ea1eac8d74d88fe1506edc2d16b2ed
+  other: session not exists or expired!
+Server.CommonError:
+  hash: sha1-41f6efd336ef77d73c53e15dc2b22430508e45f6
+  one: 'Error on Server: {{.Text}}'
+  other: Error on Server

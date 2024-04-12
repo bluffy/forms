@@ -14,6 +14,8 @@
     "axios": "^1.6.8",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
+    "markdown-it": "^14.1.0",
+    "markdown-it-abbr": "^2.0.0",
     "pinia": "^2.1.7",
     "vee-validate": "^4.12.6",
     "vue": "^3.4.21",

@@ -37,6 +37,7 @@ class ApiService {
     }
 
 
+    /*
     query(params?: any) {
 
         const appStore = useAppStore()
@@ -86,6 +87,7 @@ class ApiService {
       }
       });
     }
+    */
 
 
 }

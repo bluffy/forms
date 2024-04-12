@@ -12,7 +12,7 @@ import (
 	"goapp/util/tools"
 
 	"gitea.com/go-chi/session"
-	"github.com/go-chi/chi"
+
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -33,7 +33,13 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 	localizer := GetLocalizer(r)
 
 	form := &models.UserLoginForm{}
-	if app.checkForm(localizer, form, w, r, nil) {
+	weiter, err := app.checkForm(localizer, form, w, r, nil)
+	if err != nil {
+		msg := GetMessageServerError(r, "(forms)")
+		app.ErrorRequestLog(r, err, msg, true, msg)
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
+		return
+	} else if !weiter {
 		return
 	}
 
@@ -46,12 +52,12 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	user, err := repository.GetUserByEmail(app.db, form.Email)
 	if err != nil {
-		app.ServerLogByRequest(r, err, msgUserPasswordNotMatched, false, "")
+		app.ErrorRequestLog(r, err, msgUserPasswordNotMatched, false, "")
 		app.JsonError(r, w, http.StatusUnprocessableEntity, msgUserPasswordNotMatched)
 		return
 	}
 	if !tools.CheckPasswordHash(form.Password, user.Password) {
-		app.ServerLogByRequest(r, err, msgUserPasswordNotMatched, false, "!tools.CheckPasswordHash(form.Password, user.Password)")
+		app.ErrorRequestLog(r, err, msgUserPasswordNotMatched, false, "!tools.CheckPasswordHash(form.Password, user.Password)")
 		app.JsonError(r, w, http.StatusUnprocessableEntity, msgUserPasswordNotMatched)
 		return
 	}
@@ -61,7 +67,7 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	_, err = session.RegenerateSession(w, r)
 	if err != nil {
-		app.ServerLogByRequest(r, err, msgUserPasswordNotMatched, true, "session.RegenerateSession(w, r)")
+		app.ErrorRequestLog(r, err, msgUserPasswordNotMatched, true, "session.RegenerateSession(w, r)")
 		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
 		return
 	}
@@ -85,7 +91,14 @@ func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 
 	localizer := GetLocalizer(r)
 	form := &models.RegisterUserForm{}
-	if app.checkForm(localizer, form, w, r, nil) {
+
+	weiter, err := app.checkForm(localizer, form, w, r, nil)
+
+	if err != nil {
+		msg := GetMessageServerError(r, "(forms)")
+		app.ErrorRequestLog(r, err, msg, true, msg)
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
+	} else if !weiter {
 		return
 	}
 
@@ -99,13 +112,13 @@ func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 	user, err := repository.GetUserByEmail(app.db, form.Email)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			app.ServerLogByRequest(r, err, msgUserExists, true, "")
+			app.ErrorRequestLog(r, err, msgUserExists, true, "")
 			app.JsonError(r, w, http.StatusUnprocessableEntity, msgUserExists)
 			return
 		}
 	} else {
 		if user.ID != "" {
-			app.ServerLogByRequest(r, nil, msgUserExists, true, "user.ID != \"\"")
+			app.ErrorRequestLog(r, nil, msgUserExists, true, "user.ID != \"\"")
 			app.JsonError(r, w, http.StatusUnprocessableEntity, msgUserExists)
 			return
 		}
@@ -113,13 +126,13 @@ func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 	}
 	registerUser, err := form.ToModel()
 	if err != nil {
-		app.ServerLogByRequest(r, err, "", true, "form.ToModel()")
+		app.ErrorRequestLog(r, err, "", true, "form.ToModel()")
 		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
 		return
 	}
 	registerUser, err = repository.CreateRegisterUser(app.db, registerUser)
 	if err != nil {
-		app.ServerLogByRequest(r, err, "", true, "repository.CreateRegisterUser(app.db, registerUser)")
+		app.ErrorRequestLog(r, err, "", true, "repository.CreateRegisterUser(app.db, registerUser)")
 		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
 		return
 	}
@@ -127,19 +140,36 @@ func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 	userLink := registerUser.ToLinkModel()
 	userLinkBytes, err := json.Marshal(userLink)
 	if err != nil {
-		app.ServerLogByRequest(r, err, "", true, "json.Marshal(userLink)")
+		app.ErrorRequestLog(r, err, "", true, "json.Marshal(userLink)")
 		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
 		return
 	}
 
 	userLinkEncrypted, err := tools.EncryptBase64(string(userLinkBytes), app.conf.EncryptKey)
 	if err != nil {
-		app.ServerLogByRequest(r, err, "", true, "tools.EncryptBase64(string(userLinkBytes)")
+		app.ErrorRequestLog(r, err, "", true, "tools.EncryptBase64(string(userLinkBytes)")
 		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
 	}
+	link := app.conf.Server.ClientUrl + "/user/register/" + userLinkEncrypted
 
-	link := app.conf.Server.PublicURL + "/p/user/register/" + userLinkEncrypted
-	err = app.sendMail(true, "New Registration", "register link: "+link, "", registerUser.Email)
+	msgMail, _ := localizer.Localize(&i18n.LocalizeConfig{
+		TemplateData: map[string]interface{}{
+			"Name":         registerUser.FirstName + " " + registerUser.LastName,
+			"RegisterLink": link,
+		},
+		DefaultMessage: &i18n.Message{
+			ID: "Api.HandlerRegister.Mail.RegistrationLink",
+			Other: `Hello {{.Name}},
+Please click the following link within 3 hours to register your account:
+
+{{.RegisterLink}}
+
+link is not working? Try copying and pasting it into the browser.`,
+		},
+	})
+
+	logrus.Debug(link)
+	err = app.sendMail(true, "New Registration", msgMail, "", registerUser.Email)
 	if err != nil {
 		msg, _ := localizer.Localize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
@@ -147,26 +177,30 @@ func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 				Other: "no confirmation email could be sent",
 			},
 		})
-		app.ServerLogByRequest(r, err, msg, true, "app.sendMail()")
+		app.ErrorRequestLog(r, err, msg, true, "app.sendMail()")
 		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
 		return
 	}
 
 	var response ApiPageResponse
 	msg, _ := localizer.Localize(&i18n.LocalizeConfig{
+		TemplateData: map[string]interface{}{
+			"UserEmail": form.Email,
+		},
 		DefaultMessage: &i18n.Message{
 			ID:    "Api.HandlerRegister.RegisteringSuccessful",
-			Other: "register was successful, check your email please!t",
+			Other: "A confirmation email was sent to **{{.UserEmail}}**. Please check your mailbox within 3 hours to complete the registration process.",
 		},
 	})
 	response.Message = &msg
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		app.ServerLogByRequest(r, err, "", true, "json.NewEncoder(w).Encode(response);")
-		app.JsonError(r, w, http.StatusUnprocessableEntity, GetDefaultMessageError(r))
+		app.ErrorRequestLog(r, err, "", true, "json.NewEncoder(w).Encode(response);")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, GetMessageServerError(r, "(json encode)"))
 	}
 
 }
 
+/*
 // HandlerLogin  godoc
 // @Tags         public
 // @Description  login
@@ -178,16 +212,10 @@ func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 // @Failure      422 {object} models.AppError
 // @Failure      500 {object} models.AppError "Response JSON"
 // @Router       /bl-api/page/v1/user/register [get]
-func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
+func (app *App) HandlerRegisterLinkGet(w http.ResponseWriter, r *http.Request) {
 
 	link := chi.URLParam(r, "link")
 	localizer := GetLocalizer(r)
-
-	if localizer == nil {
-		app.ServerLogByRequest(r, nil, DEFAULT_ERROR, true, "")
-		app.RenderError(r, w, &PageError{Message: DEFAULT_ERROR})
-		return
-	}
 
 	errMsgLinkInvalid, _ := localizer.Localize(&i18n.LocalizeConfig{
 		DefaultMessage: &i18n.Message{
@@ -200,7 +228,7 @@ func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
 	logrus.Print(link)
 	linkDec, err := tools.DecryptBase64(link, app.conf.EncryptKey)
 	if err != nil {
-		app.ServerLogByRequest(r, err, errMsgLinkInvalid, true, "tools.DecryptBase64(link, app.conf.EncryptKey)")
+		app.ErrorRequestLog(r, err, errMsgLinkInvalid, true, "tools.DecryptBase64(link, app.conf.EncryptKey)")
 		app.RenderError(r, w, &PageError{Message: errMsgLinkInvalid})
 		return
 	}
@@ -209,14 +237,14 @@ func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal([]byte(linkDec), linkUser)
 	if err != nil {
-		app.ServerLogByRequest(r, err, errMsgLinkInvalid, true, "json.Unmarshal([]byte(linkDec), linkUser)")
+		app.ErrorRequestLog(r, err, errMsgLinkInvalid, true, "json.Unmarshal([]byte(linkDec), linkUser)")
 		app.RenderError(r, w, &PageError{Message: errMsgLinkInvalid})
 		return
 	}
 
 	dbRegisterUser, err := repository.ReadRegisterUser(app.db, linkUser.ID)
 	if err != nil {
-		app.ServerLogByRequest(r, err, errMsgLinkInvalid, true, "repository.ReadRegisterUser(app.db, linkUser.ID)")
+		app.ErrorRequestLog(r, err, errMsgLinkInvalid, true, "repository.ReadRegisterUser(app.db, linkUser.ID)")
 		app.RenderError(r, w, &PageError{Message: errMsgLinkInvalid})
 		return
 	}
@@ -227,7 +255,7 @@ func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
 				Other: "the link is expired",
 			},
 		})
-		app.ServerLogByRequest(r, err, msg, false, "dbRegisterUser.UpdatedAt != linkUser.CreatedAt")
+		app.ErrorRequestLog(r, err, msg, false, "dbRegisterUser.UpdatedAt != linkUser.CreatedAt")
 		app.RenderError(r, w, &PageError{Message: msg})
 		return
 	}
@@ -235,12 +263,8 @@ func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
 	dbUser, err := repository.GetUserByEmail(app.db, dbRegisterUser.Email)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			msg, _ := localizer.Localize(&i18n.LocalizeConfig{
-				DefaultMessage: &i18n.Message{
-					ID: LOCALE_MSG_ID__COMMON_SERVER_ERROR,
-				},
-			})
-			app.ServerLogByRequest(r, err, msg, true, "repository.GetUserByEmail(app.db, dbRegisterUser.Email)")
+			msg := GetMessageServerError(r, "(database)")
+			app.ErrorRequestLog(r, err, msg, true, "repository.GetUserByEmail(app.db, dbRegisterUser.Email)")
 			app.RenderError(r, w, &PageError{Message: msg})
 			return
 		}
@@ -254,7 +278,7 @@ func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
 				Other: "user alread exists",
 			},
 		})
-		app.ServerLogByRequest(r, nil, msg, true, "dbUser != nil && dbUser.Email == dbRegisterUser.Email")
+		app.ErrorRequestLog(r, nil, msg, true, "dbUser != nil && dbUser.Email == dbRegisterUser.Email")
 		app.RenderError(r, w, &PageError{Message: msg})
 
 		return
@@ -263,19 +287,15 @@ func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
 	dbUser = dbRegisterUser.ToUserModel()
 	_, err = repository.CreateUser(app.db, dbUser)
 	if err != nil {
-		msg, _ := localizer.Localize(&i18n.LocalizeConfig{
-			DefaultMessage: &i18n.Message{
-				ID: LOCALE_MSG_ID__COMMON_SERVER_ERROR,
-			},
-		})
-		app.ServerLogByRequest(r, err, msg, true, "repository.CreateUser(app.db, dbUser)")
+		msg := GetMessageServerError(r, "(database)")
+		app.ErrorRequestLog(r, err, msg, true, "repository.CreateUser(app.db, dbUser)")
 		app.RenderError(r, w, &PageError{Message: msg})
 
 		return
 	}
 	err = repository.DeleteRegisterUser(app.db, dbRegisterUser.ID)
 	if err != nil {
-		app.ServerLogByRequest(r, err, "", true, "repository.DeleteRegisterUser(app.db, dbRegisterUser.ID)")
+		app.ErrorRequestLog(r, err, "", true, "repository.DeleteRegisterUser(app.db, dbRegisterUser.ID)")
 	}
 
 	msg, _ := localizer.Localize(&i18n.LocalizeConfig{
@@ -288,6 +308,130 @@ func (app *App) HandlerRegisterLink(w http.ResponseWriter, r *http.Request) {
 		Message: &msg,
 	}
 	app.RenderPage(r, w, &page)
+
+}
+*/
+
+// HandlerLogin  godoc
+// @Tags         public
+// @Description  login
+// @Accept       json
+// @Produce      json
+// @Param        decoded  param   string  true  "link encoded"
+// @Success      200 {object} models.RegisterUserForm
+// @Failure      401 {object} models.AppError
+// @Failure      422 {object} models.AppError
+// @Failure      500 {object} models.AppError "Response JSON"
+// @Router       /bl-api/page/v1/user/register/link [post]
+func (app *App) HanderCreateUserFromMailLink(w http.ResponseWriter, r *http.Request) {
+
+	localizer := GetLocalizer(r)
+
+	var form struct {
+		Link string `json:"decoded" form:"required"`
+	}
+
+	errMsgLinkInvalid, _ := localizer.Localize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID:    "Api.HanderCreateUserFromMailLink.Register_link_is_invalid",
+			Other: "the link is invalid or expired",
+		},
+	})
+
+	err := json.NewDecoder(r.Body).Decode(&form)
+
+	if err != nil || form.Link == "" {
+		app.ErrorRequestLog(r, err, errMsgLinkInvalid, true, "json.NewDecoder(r.Body).Decode(form)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, errMsgLinkInvalid)
+		return
+	}
+
+	linkDec, err := tools.DecryptBase64(form.Link, app.conf.EncryptKey)
+	if err != nil {
+		app.ErrorRequestLog(r, err, errMsgLinkInvalid, true, "tools.DecryptBase64(link, app.conf.EncryptKey)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, errMsgLinkInvalid)
+		return
+	}
+
+	linkUser := &models.RegisterUserLink{}
+
+	err = json.Unmarshal([]byte(linkDec), linkUser)
+	if err != nil {
+		app.ErrorRequestLog(r, err, errMsgLinkInvalid, true, "json.Unmarshal([]byte(linkDec), linkUser)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, errMsgLinkInvalid)
+		return
+	}
+
+	dbRegisterUser, err := repository.ReadRegisterUser(app.db, linkUser.ID)
+	if err != nil {
+		app.ErrorRequestLog(r, err, errMsgLinkInvalid, true, "repository.ReadRegisterUser(app.db, linkUser.ID)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, errMsgLinkInvalid)
+		return
+	}
+	if dbRegisterUser.UpdatedAt != linkUser.CreatedAt {
+		msg, _ := localizer.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:    "Api.HanderCreateUserFromMailLink.Register_link_is_expired",
+				Other: "the link is expired",
+			},
+		})
+		app.ErrorRequestLog(r, err, msg, false, "dbRegisterUser.UpdatedAt != linkUser.CreatedAt")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
+		return
+	}
+
+	dbUser, err := repository.GetUserByEmail(app.db, dbRegisterUser.Email)
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			msg := GetMessageServerError(r, "(database)")
+			app.ErrorRequestLog(r, err, msg, true, "repository.GetUserByEmail(app.db, dbRegisterUser.Email)")
+			app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
+			return
+		}
+	}
+
+	if dbUser != nil && dbUser.Email == dbRegisterUser.Email {
+
+		msg, _ := localizer.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:    "Api.HanderCreateUserFromMailLink.User_already_registered",
+				Other: "user alread exists",
+			},
+		})
+		app.ErrorRequestLog(r, nil, msg, true, "dbUser != nil && dbUser.Email == dbRegisterUser.Email")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
+
+		return
+	}
+
+	dbUser = dbRegisterUser.ToUserModel()
+	_, err = repository.CreateUser(app.db, dbUser)
+	if err != nil {
+		msg := GetMessageServerError(r, "(database)")
+		app.ErrorRequestLog(r, err, msg, true, "repository.CreateUser(app.db, dbUser)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
+
+		return
+	}
+	err = repository.DeleteRegisterUser(app.db, dbRegisterUser.ID)
+	if err != nil {
+		app.ErrorRequestLog(r, err, "", true, "repository.DeleteRegisterUser(app.db, dbRegisterUser.ID)")
+	}
+
+	msg, _ := localizer.Localize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID:    "Api.HanderCreateUserFromMailLink.Message_user_created",
+			Other: "successful, you can login now!",
+		},
+	})
+
+	var response ApiPageResponse
+
+	response.Message = &msg
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		app.ErrorRequestLog(r, err, "", true, "json.NewEncoder(w).Encode(response);")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, GetMessageServerError(r, "(json encode)"))
+	}
 
 }
 
@@ -335,7 +479,7 @@ func (app *App) RefreshLoginToken(w http.ResponseWriter, r *http.Request) {
 // @Failure      422 {object} models.AppError
 // @Failure      500 {object} models.AppError "Response JSON"
 // @Router       /bl-api/page/v1/user/forgot_password[post]
-func (app *App) HandlerGeneratePasswordLink(w http.ResponseWriter, r *http.Request) {
+func (app *App) HandlerGenerateMailWithPasswordLink(w http.ResponseWriter, r *http.Request) {
 
 	localizer := GetLocalizer(r)
 
@@ -344,7 +488,13 @@ func (app *App) HandlerGeneratePasswordLink(w http.ResponseWriter, r *http.Reque
 	}
 
 	form := &UserPasswordLinkForm{}
-	if app.checkForm(localizer, form, w, r, nil) {
+	weiter, err := app.checkForm(localizer, form, w, r, nil)
+
+	if err != nil {
+		msg := GetMessageServerError(r, "(forms)")
+		app.ErrorRequestLog(r, err, msg, true, msg)
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
+	} else if !weiter {
 		return
 	}
 
@@ -352,12 +502,12 @@ func (app *App) HandlerGeneratePasswordLink(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		msg, _ := localizer.Localize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID:    "Api.HandlerGeneratePasswordLink.Error.UserNotExits",
+				ID:    "Api.HandlerGenerateMailWithPasswordLink.Error.UserNotExits",
 				Other: "user not exists",
 			},
 		})
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			app.ServerLogByRequest(r, err, msg, false, "")
+			app.ErrorRequestLog(r, err, msg, false, "")
 		}
 		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
 		return
@@ -367,9 +517,9 @@ func (app *App) HandlerGeneratePasswordLink(w http.ResponseWriter, r *http.Reque
 	user.NewPasswordRequest = &now
 	user, err = repository.UpdateUser(app.db, user)
 	if err != nil {
-		msg := GetDefaultMessageError(r)
-		app.ServerLogByRequest(r, err, msg, true, msg)
-		app.JsonError(r, w, http.StatusUnprocessableEntity, GetDefaultMessageError(r))
+		msg := GetMessageServerError(r, "(database)")
+		app.ErrorRequestLog(r, err, msg, true, msg)
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
 		return
 	}
 
@@ -380,30 +530,30 @@ func (app *App) HandlerGeneratePasswordLink(w http.ResponseWriter, r *http.Reque
 
 	passwordLinkBytes, err := json.Marshal(passwordLink)
 	if err != nil {
-		app.ServerLogByRequest(r, err, "", true, "json.Marshal(userLink)")
+		app.ErrorRequestLog(r, err, "", true, "json.Marshal(userLink)")
 		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
 		return
 	}
 
 	userLinkEncrypted, err := tools.EncryptBase64(string(passwordLinkBytes), app.conf.EncryptKey)
 	if err != nil {
-		app.ServerLogByRequest(r, err, "", true, "tools.EncryptBase64(string(userLinkBytes)")
+		app.ErrorRequestLog(r, err, "", true, "tools.EncryptBase64(string(userLinkBytes)")
 		app.JsonError(r, w, http.StatusUnprocessableEntity, "")
 	}
 
 	msgTitle, _ := localizer.Localize(&i18n.LocalizeConfig{
 		DefaultMessage: &i18n.Message{
-			ID:    "Api.HandlerGeneratePasswordLink.Mail.Subject",
+			ID:    "Api.HandlerGenerateMailWithPasswordLink.Mail.Subject",
 			Other: "recover your account",
 		},
 	})
 	msgText, _ := localizer.Localize(&i18n.LocalizeConfig{
 		TemplateData: map[string]interface{}{
 			"Name":        strings.TrimSpace(user.FirstName + " " + user.LastName),
-			"RecoverLink": app.conf.Server.PublicURL + "/p/user/new_password/" + userLinkEncrypted,
+			"RecoverLink": app.conf.Server.ClientUrl + "/user/forgot_password/" + userLinkEncrypted,
 		},
 		DefaultMessage: &i18n.Message{
-			ID:    "Api.HandlerGeneratePasswordLink.Mail.Text",
+			ID:    "Api.HandlerGenerateMailWithPasswordLink.Mail.Text",
 			Other: "Hello {{.Name}},\n\nPlease click the following link within 3 hours to restore your account:\n\n{{.RecoverLink}}\n\nlink is not working? Try copying and pasting it into the browser.",
 		},
 	})
@@ -412,11 +562,11 @@ func (app *App) HandlerGeneratePasswordLink(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		msg, _ := localizer.Localize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID:    "Api.HandlerRegister.Error.ConfirmationMailNotSend",
+				ID:    "Api.HandlerGenerateMailWithPasswordLink.Error.ConfirmationMailNotSend",
 				Other: "no confirmation email could be sent",
 			},
 		})
-		app.ServerLogByRequest(r, err, msg, true, "app.sendMail()")
+		app.ErrorRequestLog(r, err, msg, true, "app.sendMail()")
 		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
 		return
 	}
@@ -427,13 +577,138 @@ func (app *App) HandlerGeneratePasswordLink(w http.ResponseWriter, r *http.Reque
 			"UserEmail": user.Email,
 		},
 		DefaultMessage: &i18n.Message{
-			ID:    "Api.HandlerRegister.RegisteringSuccessful",
-			Other: "A confirmation email was sent to {{.UserEmail}}. Please check your mailbox within 3 hours to complete the restore process.",
+			ID:    "Api.HandlerGenerateMailWithPasswordLink.Successful",
+			Other: "A confirmation email was sent to **{{.UserEmail}}**. Please check your mailbox within 3 hours to complete the restore process.",
 		},
 	})
 	response.Message = &msg
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		app.ServerLogByRequest(r, err, "", true, "json.NewEncoder(w).Encode(response);")
-		app.JsonError(r, w, http.StatusUnprocessableEntity, GetDefaultMessageError(r))
+		app.ErrorRequestLog(r, err, "", true, "json.NewEncoder(w).Encode(response);")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, GetMessageServerError(r, "(json encode)"))
 	}
+}
+
+// HandlerLogin  godoc
+// @Tags         public
+// @Description  index test
+// @Accept       json
+// @Produce      json
+// @Success      204
+// @Router       /bl-api/page/v1/user [get]
+func (app *App) HanldeCheckUser(res http.ResponseWriter, req *http.Request) {
+
+	res.WriteHeader(http.StatusNoContent)
+	res.Write([]byte(""))
+
+}
+
+// HandlerLogin  godoc
+// @Tags         public
+// @Description  login
+// @Accept       json
+// @Produce      json
+// @Param        decoded  param   string  true  "link encoded"
+// @Success      200 {object} models.RegisterUserForm
+// @Failure      401 {object} models.AppError
+// @Failure      422 {object} models.AppError
+// @Failure      500 {object} models.AppError "Response JSON"
+// @Router       /bl-api/page/v1/user/register/link [post]
+func (app *App) HandlerCreateNewPasswordFromMailLink(w http.ResponseWriter, r *http.Request) {
+
+	localizer := GetLocalizer(r)
+
+	form := &models.UserPasswordForm{}
+
+	weiter, err := app.checkForm(localizer, form, w, r, nil)
+
+	if err != nil {
+		msg := GetMessageServerError(r, "(forms)")
+		app.ErrorRequestLog(r, err, msg, true, msg)
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
+		return
+	} else if !weiter {
+		return
+	}
+
+	errMsgLinkInvalid, _ := localizer.Localize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID:    "Api.HandlerCreateNewPasswordFromMailLink.Link_is_invalid",
+			Other: "the link is invalid or expired",
+		},
+	})
+
+	if form.Link == "" {
+		app.ErrorRequestLog(r, err, errMsgLinkInvalid, true, "form.Link == ''")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, errMsgLinkInvalid)
+		return
+	}
+
+	linkDec, err := tools.DecryptBase64(form.Link, app.conf.EncryptKey)
+	if err != nil {
+		app.ErrorRequestLog(r, err, errMsgLinkInvalid, true, "tools.DecryptBase64(link, app.conf.EncryptKey)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, errMsgLinkInvalid)
+		return
+	}
+
+	linkUser := &models.UserPasswordLink{}
+
+	err = json.Unmarshal([]byte(linkDec), linkUser)
+	if err != nil {
+		app.ErrorRequestLog(r, err, errMsgLinkInvalid, true, "json.Unmarshal([]byte(linkDec), linkUser)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, errMsgLinkInvalid)
+		return
+	}
+
+	dbUser, err := repository.ReadUser(app.db, linkUser.ID)
+	if err != nil {
+		app.ErrorRequestLog(r, err, errMsgLinkInvalid, true, "repository.ReadRegisterUser(app.db, linkUser.ID)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, errMsgLinkInvalid)
+		return
+	}
+	if *dbUser.NewPasswordRequest != linkUser.NewPasswordRequest {
+		msg, _ := localizer.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:    "Api.HandlerCreateNewPasswordFromMailLink.Link_expired",
+				Other: "the link is expired",
+			},
+		})
+		app.ErrorRequestLog(r, err, msg, true, "dbUser.NewPasswordRequest != &linkUser.NewPasswordRequest")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
+		return
+	}
+
+	dbUser.Password, err = tools.HashPassword(form.Password)
+	if err != nil {
+		msg, _ := localizer.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:    "Api.HandlerCreateNewPasswordFromMailLink.Password_is_malformed",
+				Other: "selected password is malformed",
+			},
+		})
+		app.ErrorRequestLog(r, err, msg, true, "tools.HashPassword(form.Password)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
+	}
+
+	_, err = repository.UpdateUser(app.db, dbUser)
+	if err != nil {
+		msg := GetMessageServerError(r, "(database)")
+		app.ErrorRequestLog(r, err, msg, true, "UpdateUser(app.db, dbUser)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
+	}
+
+	msg, _ := localizer.Localize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID:    "Api.HandlerCreateNewPasswordFromMailLink.Password_successful_changed",
+			Other: "successful, you can login now!",
+		},
+	})
+
+	var response ApiPageResponse
+
+	response.Message = &msg
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		app.ErrorRequestLog(r, err, "", true, "json.NewEncoder(w).Encode(response);")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, GetMessageServerError(r, "(json encode)"))
+	}
+
 }

@@ -43,8 +43,8 @@ type UserLoginForm struct {
 	UseCookie bool   `json:"use_cookie,omitempty"`
 }
 type UserPasswordForm struct {
-	Password      string `json:"password"  form:"required"`
-	PasswordReply string `json:"password_reply"  form:"required"`
+	Link     string `json:"link" `
+	Password string `json:"password" form:"required,min=5,max=64"`
 }
 type RegisterUserForm struct {
 	Email      string `json:"email" form:"required,max=255,email"`

@@ -8,7 +8,9 @@
         <h5 class="modal-title" v-if="options && options.title">{{ options.title }}</h5>
         <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
       </div>
-      <div class="modal-body" v-html="message" />
+
+      <div v-if="useHtml" class="modal-body use-html" v-html="message" />
+      <div v-else class="modal-body use-markdown"><MarkdownRenderer :source="message" /></div>
       <div class="modal-footer">
         <button v-if="options" type="button" class="btn btn-primary" @click="agree">{{ options.ok }}</button>
         <button v-if="options && isConfirm" type="button" class="btn btn-secondary"  @click="disagree"> {{ options.cancle }}</button>
@@ -23,6 +25,8 @@
 <script setup lang="ts" name="AlertDialog">
 import { ref, onMounted} from 'vue'
 import { Modal } from "bootstrap";
+import MarkdownRenderer from "./MarkdownRenderer.vue";
+
 
 //import { Modal } from "bootstrap";
 
@@ -34,6 +38,7 @@ const dialog = ref(false)
 const message = ref("")
 const options = ref()
 const isConfirm = ref(false)
+const useHtml = ref(false)
 
 var resolve = (v: boolean) => {console.log(v)}
 
@@ -43,14 +48,16 @@ function disagree() {
   resolve(false)
 }
 function agree() {
+
   resolve(true)
   dialog.value = false;
   thisModalObj.hide();
 }
 
-function alert(pMessage: string, params: any) {
-  console.log("alert")
-
+function alert(text: string,  params: any, html?: boolean) {
+  if (html) {
+    useHtml.value = true
+  }
 
 
   isConfirm.value = false
@@ -61,7 +68,7 @@ function alert(pMessage: string, params: any) {
     ok: "OK",
 }
 
-  message.value = pMessage
+  message.value = text
   options.value = Object.assign(options.value,params)
 
   thisModalObj.show();
@@ -70,7 +77,10 @@ function alert(pMessage: string, params: any) {
   })
 
 }
-function confirm(pMessage: string, params: any) {
+function confirm(text: string, params: any,  html?: boolean) {
+  if (html) {
+    useHtml.value = true
+  }
   isConfirm.value = true
   dialog.value = true
   message.value = ""
@@ -80,7 +90,7 @@ function confirm(pMessage: string, params: any) {
     cancle: "Abbrechen",
 }
 
-  message.value = pMessage
+  message.value = text
   options.value = Object.assign(options.value,params)
   return new Promise((res) => {
     resolve = res

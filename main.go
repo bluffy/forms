@@ -231,9 +231,9 @@ func Server(appConfig *config.Config, bundle *i18n.Bundle, opts ArgOptions, args
 
 	logrus.Info("Server is READY")
 	logrus.Info("##########################")
-	logrus.Infof("Public URL: %v", appConfig.Server.PublicURL)
+	logrus.Infof("Server URL: %v", appConfig.Server.PublicURL)
 	if appConfig.Server.PublicURL != appConfig.Server.ClientUrl {
-		logrus.Infof("Client URL: %v", appConfig.Server.PublicURL)
+		logrus.Infof("Client URL: %v", appConfig.Server.ClientUrl)
 	}
 	logrus.Infof("API Doku: %v", appConfig.Server.PublicURL+"/bl-api/")
 	logrus.Info("##########################")

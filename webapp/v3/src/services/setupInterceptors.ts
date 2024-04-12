@@ -10,7 +10,7 @@ const setup = () => {
     async (err: any) => {
     
 
-      if (err.config.url != path_page + "/login" && err.config.url != path_page +"/register") {
+      if (err.config.url != path_page + "/login" && err.config.url != path_page +"/user/register" && err.config.url != path_page +"/user" || err.config.url != path_page + "/logout" ) {
         
         if (err && err.code == "ERR_NETWORK") {
           return Promise.reject(err);
@@ -21,13 +21,13 @@ const setup = () => {
         if (err.response.status === 400 || err.response.status === 401) {
           const path = window.location.pathname
 
-          if (path == "/") {
+          if (path == "/" ||  path == "/login"  ) {
             router.push({ name: 'login' });
           } else {
             router.push({ name: 'login', query: { redirect: window.location.pathname } });
 
           }
-          return Promise.reject(err);
+          return Promise.resolve(err);
         } else if (err.response.status === 403) {
           router.push({ name: '/permission_denied' });
           return Promise.reject(err);

@@ -1,11 +1,12 @@
 <template>
     <div>
+        <div></div>
         <div v-if="formValuesLogin">
             <Form @submit="onSubmitLogin" :initial-values="formValuesLogin">
                 <div class="mb-3 row">
                         <Fields :fields="fieldsLogin"></Fields>
                     <div class="col-12">
-                        <router-link to="/forgot_password">Recover Password</router-link>
+                        <router-link to="/user/forgot_password">Recover Password</router-link>
                     </div>
                     <div class="col-12 mt-3">
                         <button class="btn btn-primary" type="submit">Submit form</button>
@@ -21,18 +22,18 @@
 
 import { Form } from 'vee-validate';
 import { ref, onMounted } from 'vue'
-import { genResponseError } from "../utils/errorMessage";
-import { getPropertyName } from "../utils/helper";
-import type { PageNoContent } from "../models/page.model";
-import router from "../router";
-import Fields from "../components/Fields.vue";
-import AlertDialog from "../components/AlertDialog.vue";
-import ApiService from '../services/api.service'
-import type { UserLoginForm } from "../models/user.model";
+import { genResponseError } from "../../utils/errorMessage";
+import { getPropertyName } from "../../utils/helper";
+import type { PageNoContent } from "../../models/page.model";
+import router from "../../router";
+import Fields from "../../components/Fields.vue";
+import AlertDialog from "../../components/AlertDialog.vue";
+import ApiService from '../../services/api.service'
+import type { UserLoginForm } from "../../models/user.model";
 
 
 import { useRoute } from 'vue-router'
-import { FormField } from '../models/app.model';
+import { FormField } from '../../models/app.model';
 const dialog = ref()
 
 
@@ -75,6 +76,23 @@ function onSubmitLogin(values: any, actions: any) {
 };
 
 onMounted(() => {
+
+
+    ApiService.getPage("/user").then(
+        (resp) => {
+
+            if (resp.status == 204) {
+                router.push("/")
+                return
+            }
+
+        },
+        (err: any) => {
+            console.log(err)
+        }
+    );
+
+
     formValuesLogin.value = {
         email: "",
         password: ""

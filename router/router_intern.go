@@ -8,7 +8,7 @@ import (
 	"goapp/app"
 	"goapp/app/middleware"
 
-	chi "github.com/go-chi/chi"
+	chi "github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/sirupsen/logrus"
 	httpSwagger "github.com/swaggo/http-swagger"

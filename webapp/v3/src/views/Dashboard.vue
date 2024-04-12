@@ -1,6 +1,7 @@
 <template>
 <div>
-      <p>Dashboard</p>
+      <div v-if="loaded">Dashboard</div>
+
       <AlertDialog ref="dialog"></AlertDialog>
 </div>
 </template>
@@ -14,6 +15,7 @@ import AlertDialog from "../components/AlertDialog.vue";
 import { genResponseError } from "../utils/errorMessage";
 
 const dialog = ref()
+const loaded = ref(false)
 
 
 function responseError(err: any) {
@@ -22,11 +24,11 @@ function responseError(err: any) {
 }
 
 onMounted(() => {
-
+     loaded.value = false;
     return ApiService.getPage("/").then(
         (page: PageIndex) => {
             console.log(page.data)
-
+            loaded.value = true
         },
         (err: any) => { 
             responseError(err);

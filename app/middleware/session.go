@@ -43,7 +43,7 @@ func CheckUserLogin(a *app.App) func(next http.Handler) http.Handler {
 						},
 					})
 				}
-				a.ServerLogByRequest(r, nil, msg, false, "")
+				a.ErrorRequestLog(r, nil, msg, false, "")
 
 				a.JsonError(r, w, http.StatusUnauthorized, msg)
 				return

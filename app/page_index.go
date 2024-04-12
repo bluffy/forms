@@ -1,11 +1,9 @@
 package app
 
 import (
-	language "goapp/i18n"
 	"net/http"
 
 	"gitea.com/go-chi/session"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,7 +21,7 @@ import (
 func (app *App) PageIndex(res http.ResponseWriter, req *http.Request) {
 	//app.printError(res, http.StatusInternalServerError, 200, nil, "")
 
-	localizer := req.Context().Value(ContextLocalizerKey{}).(*i18n.Localizer)
+	//localizer := req.Context().Value(ContextLocalizerKey{}).(*i18n.Localizer)
 	/*
 		msg, _ := localizer.Localize(&i18n.LocalizeConfig{
 			PluralCount: 2,
@@ -37,12 +35,7 @@ func (app *App) PageIndex(res http.ResponseWriter, req *http.Request) {
 			},
 		})
 	*/
-	msg, _ := localizer.Localize(&i18n.LocalizeConfig{
-		MessageID: language.HelloWorld7,
-		TemplateData: map[string]string{
-			"Test": "1000",
-		},
-	})
+	msg := "TEST"
 
 	//msg := "TEST"
 	sessionStore := req.Context().Value(ContextSessionStoreKey{}).(*session.Store)
