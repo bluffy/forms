@@ -1,11 +1,11 @@
 <template>
-    <div>
-        <div v-if="success">
+    <div class="container">
+        <template v-if="success">
             <div class="alert alert-secondary" role="alert">
                 <MarkdownRenderer :source="success" ></MarkdownRenderer>
             </div>
-        </div>
-        <div v-else-if="formValues && !success">
+        </template>
+        <template v-else-if="formValues && !success">
             <Form @submit="onSubmit" :initial-values="formValues">
                 <div class="mb-3 row">
                     <Fields :fields="fields"></Fields>
@@ -14,7 +14,7 @@
                     <button class="btn btn-primary" type="submit">Submit form</button>
                 </div>                
             </Form>
-        </div>
+        </template>
         <AlertDialog ref="dialog"></AlertDialog>
     </div>
 </template>
