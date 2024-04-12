@@ -64,7 +64,7 @@ func Encrypt(plaintext []byte, key []byte, iv string) (ciphertext []byte, err er
 
 	nonce := make([]byte, 12)
 
-	if iv == "" {
+	if iv == "" || len(iv) <= 27 {
 		_, err = io.ReadFull(rand.Reader, nonce)
 		if err != nil {
 			return nil, err
@@ -143,7 +143,7 @@ func DecryptBase64(ciphertext string, key string) (plaintext string, err error) 
 	return string(text), nil
 }
 func DecryptHex(ciphertext string, key string) (plaintext string, err error) {
-	sDec, _ := hex.DecodeString(string(ciphertext))
+	sDec, err := hex.DecodeString(string(ciphertext))
 	if err != nil {
 		return "", err
 	}

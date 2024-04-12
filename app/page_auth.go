@@ -689,6 +689,8 @@ func (app *App) HandlerCreateNewPasswordFromMailLink(w http.ResponseWriter, r *h
 		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
 	}
 
+	now := time.Now()
+	dbUser.NewPasswordRequest = &now
 	_, err = repository.UpdateUser(app.db, dbUser)
 	if err != nil {
 		msg := GetMessageServerError(r, "(database)")
