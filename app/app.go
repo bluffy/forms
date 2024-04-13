@@ -26,9 +26,14 @@ import (
 var versionFS embed.FS
 var version = "0.0.0"
 
-type ContextUserIDKey struct{}
+// type ContextUserIDKey struct{}
 type ContextLocalizerKey struct{}
-type ContextSessionStoreKey struct{}
+
+//type ContextSessionStoreKey struct{}
+
+const (
+	SessionKeyUserID = "user_id"
+)
 
 type ErrResponse struct {
 	//Errors []string `json:"errors"`
@@ -119,6 +124,12 @@ func (a *App) GetBundle() *i18n.Bundle {
 func GetLocalizer(r *http.Request) *i18n.Localizer {
 	return r.Context().Value(ContextLocalizerKey{}).(*i18n.Localizer)
 }
+
+/*
+func GetSessionStore(r *http.Request) session.Store {
+	return r.Context().Value(ContextSessionStoreKey{}).(session.Store)
+}
+*/
 
 func (a *App) ErrorLog(err error, logMessage string) {
 	_, fn, line, _ := runtime.Caller(1)

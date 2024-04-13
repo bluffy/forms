@@ -7,6 +7,7 @@ import { registerPlugins } from './plugins'
 import './style/App.scss'
 import 'bootstrap/dist/js/bootstrap.js'
 import setupInterceptors from "./services/setupInterceptors";
+import 'bootstrap-icons/font/bootstrap-icons.css'
 
 
 const app = createApp(App)

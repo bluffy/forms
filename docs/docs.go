@@ -10,17 +10,17 @@ const docTemplate = `{
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
         "contact": {
-            "name": "API Support",
-            "email": "github@bluffy.de"
+            "name": "dev",
+            "email": "dev@vocy.de"
         },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/bl-api/page/v1/": {
-            "get": {
-                "description": "index test",
+        "/bl-api/page/v1/user/login": {
+            "post": {
+                "description": "login",
                 "consumes": [
                     "application/json"
                 ],
@@ -28,7 +28,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public"
+                    "auth"
                 ],
                 "parameters": [
                     {
@@ -43,33 +43,18 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "No Content",
-                        "schema": {
-                            "$ref": "#/definitions/models.Token"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.AppError"
-                        }
+                        "description": "No Content"
                     },
                     "422": {
                         "description": "Unprocessable Entity",
                         "schema": {
-                            "$ref": "#/definitions/models.AppError"
-                        }
-                    },
-                    "500": {
-                        "description": "Response JSON",
-                        "schema": {
-                            "$ref": "#/definitions/models.AppError"
+                            "$ref": "#/definitions/app.ErrResponse"
                         }
                     }
                 }
             }
         },
-        "/bl-api/page/v1/login": {
+        "/bl-api/page/v1/user/register": {
             "post": {
                 "description": "login",
                 "consumes": [
@@ -79,62 +64,11 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "public"
+                    "auth"
                 ],
                 "parameters": [
                     {
-                        "description": "Email \u0026 Password",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.UserLoginForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content",
-                        "schema": {
-                            "$ref": "#/definitions/models.Token"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.AppError"
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "$ref": "#/definitions/models.AppError"
-                        }
-                    },
-                    "500": {
-                        "description": "Response JSON",
-                        "schema": {
-                            "$ref": "#/definitions/models.AppError"
-                        }
-                    }
-                }
-            }
-        },
-        "/bl-api/page/v1/register": {
-            "post": {
-                "description": "login",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "public"
-                ],
-                "parameters": [
-                    {
-                        "description": "Email \u0026 Password",
+                        "description": "register informations",
                         "name": "data",
                         "in": "body",
                         "required": true,
@@ -147,25 +81,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.RegisterUserForm"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.AppError"
+                            "$ref": "#/definitions/app.ApiPageResponse"
                         }
                     },
                     "422": {
                         "description": "Unprocessable Entity",
                         "schema": {
-                            "$ref": "#/definitions/models.AppError"
+                            "$ref": "#/definitions/app.ErrResponse"
                         }
                     },
                     "500": {
                         "description": "Response JSON",
                         "schema": {
-                            "$ref": "#/definitions/models.AppError"
+                            "$ref": "#/definitions/app.ErrResponse"
                         }
                     }
                 }
@@ -173,20 +101,24 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.AppError": {
+        "app.ApiPageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "app.ErrResponse": {
             "type": "object",
             "properties": {
                 "error": {
+                    "description": "Errors []string ` + "`" + `json:\"errors\"` + "`" + `",
                     "type": "object",
                     "properties": {
-                        "code": {
-                            "type": "integer"
-                        },
                         "fields": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "additionalProperties": true
                         },
                         "message": {
                             "type": "string"
@@ -218,17 +150,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Token": {
-            "type": "object",
-            "properties": {
-                "at": {
-                    "type": "string"
-                },
-                "rt": {
-                    "type": "string"
-                }
-            }
-        },
         "models.UserLoginForm": {
             "type": "object",
             "properties": {
@@ -246,7 +167,7 @@ const docTemplate = `{
     },
     "securityDefinitions": {
         "BEARER": {
-            "description": "Type \"Token\" followed by a space and JWT token.",
+            "description": "Type \"BEARER\" followed by a space and JWT token.",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

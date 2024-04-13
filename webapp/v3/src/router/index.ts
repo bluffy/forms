@@ -35,6 +35,9 @@ const routes = [
   {
     name: "dashboard",
     path: "/",
+    meta: {
+      intern: true
+    },
     component: defineAsyncComponent(() => import('../views/Dashboard.vue'))
   },
   {

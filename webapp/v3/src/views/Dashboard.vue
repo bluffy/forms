@@ -1,9 +1,8 @@
 <template>
-<div>
-      <div v-if="loaded">Dashboard</div>
-
-      <AlertDialog ref="dialog"></AlertDialog>
-</div>
+  <div class="content container">
+        <div v-if="loaded">Dashboard</div>
+        <AlertDialog ref="dialog"></AlertDialog>
+  </div>
 </template>
   
 <script lang="ts" setup>
@@ -25,7 +24,7 @@ function responseError(err: any) {
 
 onMounted(() => {
      loaded.value = false;
-    return ApiService.getPage("/").then(
+    return ApiService.get("/").then(
         (page: PageIndex) => {
             console.log(page.data)
             loaded.value = true

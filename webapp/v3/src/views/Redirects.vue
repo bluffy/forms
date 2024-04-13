@@ -34,7 +34,7 @@ onMounted(() => {
     loaded.value = false;
   
     if (route.name == "register_link") {
-      return ApiService.postPage("/user/register/link", {"decoded": route.params.link}).then(
+      return ApiService.post("/user/register/link", {"decoded": route.params.link}).then(
         (page: PageMessage) => {
             router.push("/login")
             if (page.data.message) {

@@ -154,16 +154,15 @@ func main() {
 // @version 1.0
 // @description app server
 
-// @contact.name API Support
-// @contact.email github@bluffy.de
-
+// @contact.name dev
+// @contact.email dev@vocy.de
 // @schemes  http https
 // @BasePath /
 
 // @securityDefinitions.apikey BEARER
 // @in header
 // @name Authorization
-// @description Type "Token" followed by a space and JWT token.
+// @description Type "BEARER" followed by a space and JWT token.
 // Server function creates start Listenen Server
 func Server(appConfig *config.Config, bundle *i18n.Bundle, opts ArgOptions, args []string) {
 
@@ -235,7 +234,7 @@ func Server(appConfig *config.Config, bundle *i18n.Bundle, opts ArgOptions, args
 	if appConfig.Server.PublicURL != appConfig.Server.ClientUrl {
 		logrus.Infof("Client URL: %v", appConfig.Server.ClientUrl)
 	}
-	logrus.Infof("API Doku: %v", appConfig.Server.PublicURL+"/bl-api/")
+	logrus.Infof("API Doku: %v", appConfig.Server.PublicURL+"/bl-api/doc")
 	logrus.Info("##########################")
 	// create a channel to subscribe ctrl+c/SIGINT event
 	sigInterruptChannel := make(chan os.Signal, 1)

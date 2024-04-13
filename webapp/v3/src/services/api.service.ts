@@ -1,7 +1,7 @@
 import api from "./api";
 import { useAppStore } from "../stores/app";
 //const path_api = import.meta.env.VITE_APP_API_PATH
-const path_page = import.meta.env.VITE_APP_API_PATH_PAGE
+const api_path = import.meta.env.VITE_APP_API_PATH
 
 
 function get(path: string, slug: string, params?: any ) {
@@ -28,12 +28,12 @@ function post(path: string, slug: string, values?: any ) {
 
 class ApiService {
 
-    getPage(slug: string, params?: any) {
-        return get(path_page, slug, params)
+    get(slug: string, params?: any) {
+        return get(api_path, slug, params)
     }
 
-    postPage(slug: string, values?:any) {
-      return post(path_page, slug, values)
+    post(slug: string, values?:any) {
+      return post(api_path, slug, values)
     }
 
 

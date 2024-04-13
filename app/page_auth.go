@@ -18,18 +18,16 @@ import (
 	"gorm.io/gorm"
 )
 
-// HandlerLogin  godoc
-// @Tags         public
+// HandleAuthLoginForm  godoc
+// @Tags         auth
 // @Description  login
 // @Accept       json
 // @Produce      json
 // @Param data body models.UserLoginForm  true "Email & Password"
-// @Success      204 {object} models.Token
-// @Failure      401 {object} models.AppError
-// @Failure      422 {object} models.AppError
-// @Failure      500 {object} models.AppError "Response JSON"
-// @Router       /bl-api/page/v1/user/login [post]
-func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
+// @Success      204
+// @Failure      422 {object} app.ErrResponse
+// @Router       /bl-api/v1/user/login [post]
+func (app *App) HandleAuthLoginForm(w http.ResponseWriter, r *http.Request) {
 	localizer := GetLocalizer(r)
 
 	form := &models.UserLoginForm{}
@@ -45,7 +43,7 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	msgUserPasswordNotMatched, _ := localizer.Localize(&i18n.LocalizeConfig{
 		DefaultMessage: &i18n.Message{
-			ID:    "Api.HandlerLogin.Error.UserNotExits",
+			ID:    "Api.HandleAuthLoginForm.Error.UserNotExits",
 			Other: "user & password not matched",
 		},
 	})
@@ -62,8 +60,7 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sess := session.GetSession(r)
-	sess.Set("user_id", user.ID)
+	session.GetSession(r).Set(SessionKeyUserID, user.ID)
 
 	_, err = session.RegenerateSession(w, r)
 	if err != nil {
@@ -76,18 +73,17 @@ func (app *App) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(""))
 }
 
-// HandlerLogin  godoc
-// @Tags         public
+// HandleAuthRegisterFrom  godoc
+// @Tags         auth
 // @Description  login
 // @Accept       json
 // @Produce      json
-// @Param data body models.RegisterUserForm  true "Email & Password"
-// @Success      200 {object} models.RegisterUserForm
-// @Failure      401 {object} models.AppError
-// @Failure      422 {object} models.AppError
-// @Failure      500 {object} models.AppError "Response JSON"
-// @Router       /bl-api/page/v1/user/register [post]
-func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
+// @Param data body models.RegisterUserForm true "register informations"
+// @Success      200 {object} app.ApiPageResponse
+// @Failure      422 {object} app.ErrResponse
+// @Failure      500 {object} app.ErrResponse "Response JSON"
+// @Router       /bl-api/v1/user/register [post]
+func (app *App) HandleAuthRegisterFrom(w http.ResponseWriter, r *http.Request) {
 
 	localizer := GetLocalizer(r)
 	form := &models.RegisterUserForm{}
@@ -104,7 +100,7 @@ func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 
 	msgUserExists, _ := localizer.Localize(&i18n.LocalizeConfig{
 		DefaultMessage: &i18n.Message{
-			ID:    "Api.HandlerRegister.Error.UserAlreadyRegistered",
+			ID:    "Api.HandleAuthRegisterFrom.Error.UserAlreadyRegistered",
 			Other: "user alread exists",
 		},
 	})
@@ -158,7 +154,7 @@ func (app *App) HandlerRegister(w http.ResponseWriter, r *http.Request) {
 			"RegisterLink": link,
 		},
 		DefaultMessage: &i18n.Message{
-			ID: "Api.HandlerRegister.Mail.RegistrationLink",
+			ID: "Api.HandleAuthRegisterFrom.Mail.RegistrationLink",
 			Other: `Hello {{.Name}},
 Please click the following link within 3 hours to register your account:
 
@@ -173,7 +169,7 @@ link is not working? Try copying and pasting it into the browser.`,
 	if err != nil {
 		msg, _ := localizer.Localize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID:    "Api.HandlerRegister.Error.ConfirmationMailNotSend",
+				ID:    "Api.HandleAuthRegisterFrom.Error.ConfirmationMailNotSend",
 				Other: "no confirmation email could be sent",
 			},
 		})
@@ -188,7 +184,7 @@ link is not working? Try copying and pasting it into the browser.`,
 			"UserEmail": form.Email,
 		},
 		DefaultMessage: &i18n.Message{
-			ID:    "Api.HandlerRegister.RegisteringSuccessful",
+			ID:    "Api.HandleAuthRegisterFrom.RegisteringSuccessful",
 			Other: "A confirmation email was sent to **{{.UserEmail}}**. Please check your mailbox within 3 hours to complete the registration process.",
 		},
 	})
@@ -200,18 +196,44 @@ link is not working? Try copying and pasting it into the browser.`,
 
 }
 
-/*
-// HandlerLogin  godoc
-// @Tags         public
+// HandleAuthLogout  godoc
+// @Tags         auth
 // @Description  login
 // @Accept       json
-// @Produce      json
-// @Param        link  path   string  true  "link encoded"
-// @Success      200 {object} models.RegisterUserForm
-// @Failure      401 {object} models.AppError
-// @Failure      422 {object} models.AppError
-// @Failure      500 {object} models.AppError "Response JSON"
-// @Router       /bl-api/page/v1/user/register [get]
+// @Success      204
+// @Failure      422 {object} app.ErrResponse
+// @Failure      500 {object} app.ErrResponse "Response JSON"
+// @Router       /bl-api/v1/user/logout [get]
+func (app *App) HandleAuthLogout(w http.ResponseWriter, r *http.Request) {
+
+	//localizer := GetLocalizer(r)
+
+	sess := session.GetSession(r)
+	userId := sess.Get(SessionKeyUserID).(string)
+	msg := GetMessageServerError(r, "(database)")
+
+	userDb, err := repository.ReadUser(app.db, userId)
+	if err != nil {
+		app.ErrorRequestLog(r, err, msg, true, "repository.ReadUser(app.db, userId)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
+	}
+	_, err = repository.UpdateUser(app.db, userDb)
+	if err != nil {
+		app.ErrorRequestLog(r, err, msg, true, "repository.UpdateUser(app.db, userDb)")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, msg)
+	}
+
+	err = session.GetSession(r).Destroy(w, r)
+	if err != nil {
+		app.ErrorRequestLog(r, err, "", true, "json.NewEncoder(w).Encode(response);")
+		app.JsonError(r, w, http.StatusUnprocessableEntity, GetMessageServerError(r, "(json encode)"))
+	}
+	w.WriteHeader(http.StatusNoContent)
+	w.Write([]byte(""))
+}
+
+/*
+
 func (app *App) HandlerRegisterLinkGet(w http.ResponseWriter, r *http.Request) {
 
 	link := chi.URLParam(r, "link")
@@ -312,17 +334,6 @@ func (app *App) HandlerRegisterLinkGet(w http.ResponseWriter, r *http.Request) {
 }
 */
 
-// HandlerLogin  godoc
-// @Tags         public
-// @Description  login
-// @Accept       json
-// @Produce      json
-// @Param        decoded  param   string  true  "link encoded"
-// @Success      200 {object} models.RegisterUserForm
-// @Failure      401 {object} models.AppError
-// @Failure      422 {object} models.AppError
-// @Failure      500 {object} models.AppError "Response JSON"
-// @Router       /bl-api/page/v1/user/register/link [post]
 func (app *App) HanderCreateUserFromMailLink(w http.ResponseWriter, r *http.Request) {
 
 	localizer := GetLocalizer(r)
@@ -468,17 +479,6 @@ func (app *App) RefreshLoginToken(w http.ResponseWriter, r *http.Request) {
 }
 */
 
-// HandlerLogin  godoc
-// @Tags         public
-// @Description  index test
-// @Accept       json
-// @Produce      json
-// @Param data body models.UserLoginForm  true "Email & Password"
-// @Success      204 {object} models.Token
-// @Failure      401 {object} models.AppError
-// @Failure      422 {object} models.AppError
-// @Failure      500 {object} models.AppError "Response JSON"
-// @Router       /bl-api/page/v1/user/forgot_password[post]
 func (app *App) HandlerGenerateMailWithPasswordLink(w http.ResponseWriter, r *http.Request) {
 
 	localizer := GetLocalizer(r)
@@ -588,13 +588,6 @@ func (app *App) HandlerGenerateMailWithPasswordLink(w http.ResponseWriter, r *ht
 	}
 }
 
-// HandlerLogin  godoc
-// @Tags         public
-// @Description  index test
-// @Accept       json
-// @Produce      json
-// @Success      204
-// @Router       /bl-api/page/v1/user [get]
 func (app *App) HanldeCheckUser(res http.ResponseWriter, req *http.Request) {
 
 	res.WriteHeader(http.StatusNoContent)
@@ -602,17 +595,6 @@ func (app *App) HanldeCheckUser(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// HandlerLogin  godoc
-// @Tags         public
-// @Description  login
-// @Accept       json
-// @Produce      json
-// @Param        decoded  param   string  true  "link encoded"
-// @Success      200 {object} models.RegisterUserForm
-// @Failure      401 {object} models.AppError
-// @Failure      422 {object} models.AppError
-// @Failure      500 {object} models.AppError "Response JSON"
-// @Router       /bl-api/page/v1/user/register/link [post]
 func (app *App) HandlerCreateNewPasswordFromMailLink(w http.ResponseWriter, r *http.Request) {
 
 	localizer := GetLocalizer(r)

@@ -103,7 +103,7 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 
 		MaxAge: a.Conf().Server.Cors.MaxAge, // Maximum value not ignored by any of major browsers
 	}))
-	r.Use(middleware.SetSession(a))
+	//r.Use(middleware.SetSession(a))
 	r.Use(middleware.SetLocale(a))
 
 	r.HandleFunc("/healthz", a.HanlderHealth)
@@ -162,37 +162,37 @@ func NewApp(a *app.App, publicFS fs.FS) *chi.Mux {
 
 	r.Route("/bl-api", func(r chi.Router) {
 		if a.Conf().Dev || a.Conf().ShowApiDoku {
-			r.Mount("/", httpSwagger.WrapHandler)
+			r.Mount("/doc", httpSwagger.WrapHandler)
 		}
-		r.Route("/page", func(r chi.Router) {
-			r.Route("/v1", func(r chi.Router) {
+		r.Route("/v1", func(r chi.Router) {
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.ContentTypeJson)
+				r.Use(middleware.CheckUserLogin(a))
+				r.Get("/", a.PageIndex)
+
+			})
+			r.Route("/user", func(r chi.Router) {
+
+				r.Group(func(r chi.Router) {
+					r.Use(middleware.ContentTypeJson)
+					r.Post("/login", a.HandleAuthLoginForm)
+					r.Post("/register/link", a.HanderCreateUserFromMailLink)
+					r.Post("/register", a.HandleAuthRegisterFrom)
+					r.Post("/forgot_password/link", a.HandlerCreateNewPasswordFromMailLink)
+					r.Post("/forgot_password", a.HandlerGenerateMailWithPasswordLink)
+				})
 				r.Group(func(r chi.Router) {
 					r.Use(middleware.ContentTypeJson)
 					r.Use(middleware.CheckUserLogin(a))
-					r.Get("/", a.PageIndex)
-
-				})
-				r.Route("/user", func(r chi.Router) {
-
-					r.Group(func(r chi.Router) {
-						r.Use(middleware.ContentTypeJson)
-						r.Post("/login", a.HandlerLogin)
-						r.Post("/register/link", a.HanderCreateUserFromMailLink)
-						r.Post("/register", a.HandlerRegister)
-						r.Post("/forgot_password/link", a.HandlerCreateNewPasswordFromMailLink)
-						r.Post("/forgot_password", a.HandlerGenerateMailWithPasswordLink)
-					})
-					r.Group(func(r chi.Router) {
-						r.Use(middleware.ContentTypeJson)
-						r.Use(middleware.CheckUserLogin(a))
-						r.Get("/", a.HanldeCheckUser)
-					})
+					r.Get("/", a.HanldeCheckUser)
+					r.Get("/logout", a.HandleAuthLogout)
 
 				})
 
 			})
 
 		})
+
 		//r.Get("/oidc/{name}", a.HandlerOpenIDConnect)
 
 		/*

@@ -1,14 +1,17 @@
 basePath: /
 definitions:
-  models.AppError:
+  app.ApiPageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  app.ErrResponse:
     properties:
       error:
+        description: Errors []string `json:"errors"`
         properties:
-          code:
-            type: integer
           fields:
-            additionalProperties:
-              type: string
+            additionalProperties: true
             type: object
           message:
             type: string
@@ -29,13 +32,6 @@ definitions:
       terms_agree:
         type: boolean
     type: object
-  models.Token:
-    properties:
-      at:
-        type: string
-      rt:
-        type: string
-    type: object
   models.UserLoginForm:
     properties:
       email:
@@ -47,46 +43,13 @@ definitions:
     type: object
 info:
   contact:
-    email: github@bluffy.de
-    name: API Support
+    email: dev@vocy.de
+    name: dev
   description: app server
   title: app server
   version: "1.0"
 paths:
-  /bl-api/page/v1/:
-    get:
-      consumes:
-      - application/json
-      description: index test
-      parameters:
-      - description: Email & Password
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/models.UserLoginForm'
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-          schema:
-            $ref: '#/definitions/models.Token'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.AppError'
-        "422":
-          description: Unprocessable Entity
-          schema:
-            $ref: '#/definitions/models.AppError'
-        "500":
-          description: Response JSON
-          schema:
-            $ref: '#/definitions/models.AppError'
-      tags:
-      - public
-  /bl-api/page/v1/login:
+  /bl-api/page/v1/user/login:
     post:
       consumes:
       - application/json
@@ -103,29 +66,19 @@ paths:
       responses:
         "204":
           description: No Content
-          schema:
-            $ref: '#/definitions/models.Token'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.AppError'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/models.AppError'
-        "500":
-          description: Response JSON
-          schema:
-            $ref: '#/definitions/models.AppError'
+            $ref: '#/definitions/app.ErrResponse'
       tags:
-      - public
-  /bl-api/page/v1/register:
+      - auth
+  /bl-api/page/v1/user/register:
     post:
       consumes:
       - application/json
       description: login
       parameters:
-      - description: Email & Password
+      - description: register informations
         in: body
         name: data
         required: true
@@ -137,27 +90,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.RegisterUserForm'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.AppError'
+            $ref: '#/definitions/app.ApiPageResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/models.AppError'
+            $ref: '#/definitions/app.ErrResponse'
         "500":
           description: Response JSON
           schema:
-            $ref: '#/definitions/models.AppError'
+            $ref: '#/definitions/app.ErrResponse'
       tags:
-      - public
+      - auth
 schemes:
 - http
 - https
 securityDefinitions:
   BEARER:
-    description: Type "Token" followed by a space and JWT token.
+    description: Type "BEARER" followed by a space and JWT token.
     in: header
     name: Authorization
     type: apiKey

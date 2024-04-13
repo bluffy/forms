@@ -46,7 +46,7 @@ const fieldsLogin = ref(null as FormField[]);
 
 
 function onSubmitLogin(values: any, actions: any) {
-    return ApiService.postPage("/user/login", values).then(
+    return ApiService.post("/user/login", values).then(
         (page: PageNoContent) => {
             if (page.status != 204) {
                 dialog.value.alert("error on login");
@@ -78,7 +78,7 @@ function onSubmitLogin(values: any, actions: any) {
 onMounted(() => {
 
 
-    ApiService.getPage("/user").then(
+    ApiService.get("/user").then(
         (resp) => {
 
             if (resp.status == 204) {

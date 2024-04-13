@@ -78,7 +78,7 @@ const fieldsPassword = ref(null as FormField[]);
 
 
 function onSubmitRecover(values: any, actions: any) {
-    return ApiService.postPage("/user/forgot_password", values).then(
+    return ApiService.post("/user/forgot_password", values).then(
         (page: PageRegister) => {
             if (page.status != 200 || !page.data.message) {
                 dialog.value.alert("error on Register");
@@ -108,7 +108,7 @@ function onSubmitRecover(values: any, actions: any) {
 
 
 function onSubmitPassword(values: any, actions: any) {
-    return ApiService.postPage("/user/forgot_password/link", {password: values.password, link: route.params.link}).then(
+    return ApiService.post("/user/forgot_password/link", {password: values.password, link: route.params.link}).then(
         (page: PageRegister) => {
             if (page.status != 200 || !page.data.message) {
                 dialog.value.alert("error on change");

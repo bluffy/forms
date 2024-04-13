@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"goapp/app"
 	"net/http"
 
@@ -9,29 +8,31 @@ import (
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
-func SetSession(a *app.App) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
+/*
+	func SetSession(a *app.App) func(next http.Handler) http.Handler {
+		return func(next http.Handler) http.Handler {
+			fn := func(w http.ResponseWriter, r *http.Request) {
 
-			sessStore := session.GetSession(r)
+				sessStore := session.GetSession(r)
+				user_id := sessStore.Get(app.SessionKeyUserID)
+				if user_id != nil {
+					ctx = context.WithValue(ctx, app.ContextUserIDKey{}, user_id)
 
-			ctx := context.WithValue(r.Context(), app.ContextSessionStoreKey{}, &sessStore)
-			user_id := sessStore.Get("user_id")
-			if user_id != nil {
-				ctx = context.WithValue(ctx, app.ContextUserIDKey{}, user_id)
+				}
+				next.ServeHTTP(w, r.WithContext(ctx))
 
 			}
-			next.ServeHTTP(w, r.WithContext(ctx))
-
+			return http.HandlerFunc(fn)
 		}
-		return http.HandlerFunc(fn)
-	}
 
 }
+*/
 func CheckUserLogin(a *app.App) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			user_id := r.Context().Value(app.ContextUserIDKey{})
+			store := session.GetSession(r)
+			user_id := store.Get(app.SessionKeyUserID)
+			//user_id := r.Context().Value(app.ContextUserIDKey{})
 			if user_id == nil || user_id == "" {
 				localizer := app.GetLocalizer(r)
 				msg := "session not exists or expired!"

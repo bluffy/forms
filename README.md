@@ -10,7 +10,7 @@
     git config user.name "gitUsername"
     git config user.email "git@email"
 
-    ~/go/bin/swag init -t public && \
+    ~/go/bin/swag init -t public,auth && \
     ~/go/bin/swag init -t intern --instanceName intern 
 
     ~/go/bin/swag init -t public && ~/go/bin/swag init -t intern --instanceName intern 

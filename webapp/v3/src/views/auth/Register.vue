@@ -38,7 +38,7 @@ const formValues = ref(null as UserRegisterForm);
 const fields =ref(null as FormField[]);
 
 function onSubmit(values: any, actions: any) {
-    return ApiService.postPage("/user/register", values).then(
+    return ApiService.post("/user/register", values).then(
         (page: PageMessage) => {
 
             if (page.status != 200 || !page.data.message) {
